@@ -61,6 +61,7 @@ const fsMock = Object.assign ( {}, fs, {
   },
   stat (tmpfile, cb) {
     if (/nostat/.test(tmpfile)) return cb(createErr('ENOSTAT'))
+    if (/statful/.test(tmpfile)) return cb(null, fs.statSync('/'));
     cb()
   },
   /* SYNC */
@@ -102,6 +103,7 @@ const fsMock = Object.assign ( {}, fs, {
   },
   statSync (tmpfile) {
     if (/nostat/.test(tmpfile)) throw createErr('ENOSTAT')
+    if (/statful/.test(tmpfile)) return fs.statSync('/');
   }
 });
 
@@ -119,7 +121,7 @@ test('async tests', t => {
   })
 
   t.test('non-root tests', t => {
-    t.plan(19)
+    t.plan(21)
 
     writeFileAtomic('good', 'test', { mode: '0777' }, err => {
       t.notOk(err, 'No errors occur when passing in options')
@@ -178,6 +180,11 @@ test('async tests', t => {
     writeFileAtomic('eperm', 'test', { chown: { uid: 100, gid: 100 } }, err => {
       t.notOk(err, 'No errors on EPERM for non root')
     })
+    const optionsImmutable = {};
+    writeFileAtomic('statful', 'test', optionsImmutable, err => {
+      t.notOk(err);
+      t.deepEquals(optionsImmutable, {});
+    });
   })
 
   t.test('errors for root', t => {
@@ -220,7 +227,7 @@ test('sync tests', t => {
   let tmpfile
 
   t.test('non-root', t => {
-    t.plan(22)
+    t.plan(24)
     noexception(t, 'No errors occur when passing in options', () => {
       writeFileAtomicSync('good', 'test', { mode: '0777' })
     })
@@ -298,6 +305,11 @@ test('sync tests', t => {
     noexception(t, 'No attempt to chmod when no mode provided', () => {
       writeFileAtomicSync('nochmod', 'test', { mode: false })
     })
+    const optionsImmutable = {};
+    noexception(t, 'options are immutable', () => {
+      writeFileAtomicSync('statful', 'test', optionsImmutable)
+    })
+    t.deepEquals(optionsImmutable, {});
   })
 
   t.test('errors for root', t => {

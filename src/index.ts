@@ -48,6 +48,8 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
       if ( stat ) {
 
+        options = { ...options };
+
         if ( useStatChown ) options.chown = { uid: stat.uid, gid: stat.gid };
 
         if ( useStatMode ) options.mode = stat.mode;
@@ -132,6 +134,8 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): voi
       const stat = FS.statSyncAttempt ( filePath );
 
       if ( stat ) {
+
+        options = { ...options };
 
         if ( useStatChown ) options.chown = { uid: stat.uid, gid: stat.gid };
 
