@@ -70,7 +70,19 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
     }
 
-    if ( options.fsync !== false ) await FS.fsync ( fd );
+    if ( options.fsync !== false ) {
+
+      if ( options.fsyncWait !== false ) {
+
+        await FS.fsync ( fd );
+
+      } else {
+
+        FS.fsyncAttempt ( fd );
+
+      }
+
+    }
 
     await FS.close ( fd );
 
@@ -143,7 +155,19 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): voi
 
     }
 
-    if ( options.fsync !== false ) FS.fsyncSync ( fd );
+    if ( options.fsync !== false ) {
+
+      if ( options.fsyncWait !== false ) {
+
+        FS.fsyncSync ( fd );
+
+      } else {
+
+        FS.fsyncAttempt ( fd );
+
+      }
+
+    }
 
     FS.closeSync ( fd );
 

@@ -19,6 +19,7 @@ const FS = {
   chmodAttempt: attemptifyAsync ( promisify ( fs.chmod ), Handlers.onChownError ),
   chownAttempt: attemptifyAsync ( promisify ( fs.chown ), Handlers.onChownError ),
   closeAttempt: attemptifyAsync ( promisify ( fs.close ) ),
+  fsyncAttempt: attemptifyAsync ( promisify ( fs.fsync ) ),
   realpathAttempt: attemptifyAsync ( promisify ( fs.realpath ) ),
   statAttempt: attemptifyAsync ( promisify ( fs.stat ) ),
   unlinkAttempt: attemptifyAsync ( promisify ( fs.unlink ) ),
