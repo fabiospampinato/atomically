@@ -238,7 +238,7 @@ test('sync tests', t => {
   let tmpfile
 
   t.test('non-root', t => {
-    t.plan(24)
+    t.plan(25)
     noexception(t, 'No errors occur when passing in options', () => {
       writeFileAtomicSync('good', 'test', { mode: '0777' })
     })
@@ -258,6 +258,7 @@ test('sync tests', t => {
         }
       })
       t.match(tmpfile, /^good\.tmp-\w+$/, 'tmpCreated called for success')
+      t.match(tmpfile, /^good\.tmp-\d{10}[a-f0-9]{6}$/, 'tmpCreated format')
     })
 
     tmpfile = undefined
