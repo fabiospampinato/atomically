@@ -40,7 +40,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
     filePath = await FS.realpathAttempt ( filePath ) || filePath;
 
-    [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create );
+    [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create, !( options.tmpPurge === false ) );
 
     const useStatChown = IS_POSIX && Lang.isUndefined ( options.chown ),
           useStatMode = Lang.isUndefined ( options.mode );
@@ -129,7 +129,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
     filePath = FS.realpathSyncAttempt ( filePath ) || filePath;
 
-    [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create );
+    [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create, !( options.tmpPurge === false ) );
 
     const useStatChown = IS_POSIX && Lang.isUndefined ( options.chown ),
           useStatMode = Lang.isUndefined ( options.mode );

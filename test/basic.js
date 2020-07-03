@@ -3,6 +3,8 @@
 process.setMaxListeners(1000000);
 
 const fs = require('fs')
+const os = require('os')
+const path = require('path')
 const {test} = require('tap')
 const requireInject = require('require-inject')
 
@@ -243,7 +245,7 @@ test('sync tests', t => {
   let tmpfile
 
   t.test('non-root', t => {
-    t.plan(27)
+    t.plan(36)
     noexception(t, 'No errors occur when passing in options', () => {
       writeFileAtomicSync('good', 'test', { mode: '0777' })
     })
@@ -332,6 +334,30 @@ test('sync tests', t => {
     noexception(t, 'custom temp creator', () => {
       writeFileAtomicSync('good', 'test', {tmpCreate, tmpCreated})
     })
+    const path0 = path.join(os.tmpdir(),'atomically-test-0');
+    const tmpPath0 = path0 + '.temp';
+    noexception(t, 'temp files are purged on success', () => {
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs });
+      writeFileAtomicSync(path0, 'test', {tmpCreate: () => tmpPath0})
+    })
+    t.is(true,fs.existsSync(path0));
+    t.is(false,fs.existsSync(tmpPath0));
+    const path1 = path.join(os.tmpdir(),'atomically-test-norename-1');
+    const tmpPath1 = path1 + '.temp';
+    throws(t, 'ENORENAME', 'temp files are purged on error', () => {
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
+      writeFileAtomicSync(path1, 'test', {tmpCreate: () => tmpPath1})
+    })
+    t.is(false,fs.existsSync(path1));
+    t.is(false,fs.existsSync(tmpPath1));
+    const path2 = path.join(os.tmpdir(),'atomically-test-norename-2');
+    const tmpPath2 = path2 + '.temp';
+    throws(t, 'ENORENAME', 'temp files can also not be purged on error', () => {
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
+      writeFileAtomicSync(path2, 'test', {tmpCreate: () => tmpPath2,tmpPurge: false})
+    })
+    t.is(false,fs.existsSync(path2));
+    t.is(true,fs.existsSync(tmpPath2));
   })
 
   t.test('errors for root', t => {

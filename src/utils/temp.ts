@@ -41,21 +41,29 @@ const Temp = {
 
   purge: ( filePath: string ): void => {
 
+    if ( !Temp.store[filePath] ) return;
+
     delete Temp.store[filePath];
 
     FS.unlinkAttempt ( filePath );
 
   },
 
-  purgeAll: (): void => {
+  purgeSync: ( filePath: string ): void => {
+
+    if ( !Temp.store[filePath] ) return;
+
+    delete Temp.store[filePath];
+
+    FS.unlinkSyncAttempt ( filePath );
+
+  },
+
+  purgeSyncAll: (): void => {
 
     for ( const filePath in Temp.store ) {
 
-      if ( !Temp.store[filePath] ) continue;
-
-      delete Temp.store[filePath];
-
-      FS.unlinkSyncAttempt ( filePath );
+      Temp.purgeSync ( filePath );
 
     }
 
@@ -65,7 +73,7 @@ const Temp = {
 
 /* INIT */
 
-process.on ( 'exit', Temp.purgeAll ); // Ensuring purgeable temp files are purged on exit
+process.on ( 'exit', Temp.purgeSyncAll ); // Ensuring purgeable temp files are purged on exit
 
 /* EXPORT */
 
