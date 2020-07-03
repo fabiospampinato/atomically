@@ -9,12 +9,6 @@ const Lang = {
 
   },
 
-  isNil: ( x: any ): x is null | undefined => {
-
-    return x == null;
-
-  },
-
   isString: ( x: any ): x is string => {
 
     return typeof x === 'string';

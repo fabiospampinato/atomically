@@ -1,10 +1,10 @@
 
 /* IMPORT */
 
-import {DEFAULT_ENCODING, DEFAULT_MODE, IS_POSIX, NOOP} from './consts';
+import {DEFAULT_ENCODING, DEFAULT_MODE, IS_POSIX} from './consts';
 import FS from './utils/fs';
 import Lang from './utils/lang';
-import Tasker from './utils/tasker';
+import Scheduler from './utils/scheduler';
 import Temp from './utils/temp';
 import {Path, Data, Disposer, Options, Callback} from './types';
 
@@ -26,16 +26,16 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
   if ( Lang.isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
-  let taskDisposer: Disposer | null = null,
+  let schedulerDisposer: Disposer | null = null,
       tempDisposer: Disposer | null = null,
       tempPath: string | null = null,
       fd: number | null = null;
 
   try {
 
-    taskDisposer = await Tasker.task ( filePath );
+    schedulerDisposer = await Scheduler.schedule ( filePath );
 
-    filePath = await FS.realpath ( filePath ).catch ( NOOP ) || filePath;
+    filePath = await FS.realpathAttempt ( filePath ) || filePath;
 
     [tempPath, tempDisposer] = Temp.get ( filePath );
 
@@ -44,7 +44,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
     if ( useStatChown || useStatMode ) {
 
-      const stat = await FS.stat ( filePath ).catch ( NOOP );
+      const stat = await FS.statAttempt ( filePath );
 
       if ( stat ) {
 
@@ -76,9 +76,9 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
     fd = null;
 
-    if ( options.chown ) await FS.chown ( tempPath, options.chown.uid, options.chown.gid ).catch ( FS.onChownError );
+    if ( options.chown ) await FS.chownAttempt ( tempPath, options.chown.uid, options.chown.gid );
 
-    if ( options.mode ) await FS.chmod ( tempPath, options.mode ).catch ( FS.onChownError );
+    if ( options.mode ) await FS.chmodAttempt ( tempPath, options.mode );
 
     await FS.rename ( tempPath, filePath );
 
@@ -88,11 +88,11 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
   } finally {
 
-    if ( fd ) await FS.close ( fd ).catch ( NOOP );
+    if ( fd ) await FS.closeAttempt ( fd );
 
     if ( tempPath ) Temp.purge ( tempPath );
 
-    if ( taskDisposer ) taskDisposer ();
+    if ( schedulerDisposer ) schedulerDisposer ();
 
   }
 
@@ -108,7 +108,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): voi
 
   try {
 
-    filePath = FS.realpathSync ( filePath ) || filePath;
+    filePath = FS.realpathSyncAttempt ( filePath ) || filePath;
 
     [tempPath, tempDisposer] = Temp.get ( filePath );
 
@@ -117,7 +117,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): voi
 
     if ( useStatChown || useStatMode ) {
 
-      const stat = FS.statSync ( filePath );
+      const stat = FS.statSyncAttempt ( filePath );
 
       if ( stat ) {
 
@@ -149,9 +149,9 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): voi
 
     fd = null;
 
-    if ( options.chown ) FS.chownSync ( tempPath, options.chown.uid, options.chown.gid );
+    if ( options.chown ) FS.chownSyncAttempt ( tempPath, options.chown.uid, options.chown.gid );
 
-    if ( options.mode ) FS.chmodSync ( tempPath, options.mode );
+    if ( options.mode ) FS.chmodSyncAttempt ( tempPath, options.mode );
 
     FS.renameSync ( tempPath, filePath );
 
@@ -161,7 +161,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): voi
 
   } finally {
 
-    if ( fd ) FS.closeSyncLoose ( fd );
+    if ( fd ) FS.closeSyncAttempt ( fd );
 
     if ( tempPath ) Temp.purge ( tempPath );
 

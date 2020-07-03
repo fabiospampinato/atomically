@@ -2,9 +2,8 @@
 /* IMPORT */
 
 import * as crypto from 'crypto';
-import * as fs from 'fs';
-import {NOOP} from '../consts';
 import {Disposer} from '../types';
+import FS from './fs';
 
 /* TEMP */
 
@@ -36,7 +35,7 @@ const Temp = {
 
     delete Temp.store[filePath];
 
-    fs.unlink ( filePath, NOOP );
+    FS.unlinkAttempt ( filePath );
 
   },
 
@@ -48,11 +47,7 @@ const Temp = {
 
       delete Temp.store[filePath];
 
-      try {
-
-        fs.unlinkSync ( filePath );
-
-      } catch {}
+      FS.unlinkSyncAttempt ( filePath );
 
     }
 

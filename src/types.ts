@@ -10,17 +10,16 @@ type Disposer = () => void;
 type Exception = NodeJS.ErrnoException;
 
 type Options = string | {
-  /* BUILT-INS */
+  chown?: { gid: number, uid: number } | false,
   encoding?: string | null,
-  flag?: string,
-  mode?: string | number,
-  /* EXTRAS */ //TODO
-  chown?: {
-    uid: number,
-    gid: number
-  },
   fsync?: boolean,
-  tmpfileCreated?: ( filePath: string ) => any
+  fsyncWait?: boolean,
+  mode?: string | number | false,
+  schedule?: ( filePath: string ) => Promise<Disposer>,
+  timeout?: number,
+  tmpCreate?: ( filePath: string ) => string,
+  tmpCreated?: ( filePath: string ) => any,
+  tmpPurge?: boolean
 };
 
 type Path = string;

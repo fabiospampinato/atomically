@@ -1,13 +1,27 @@
 
 /* IMPORT */
 
+import {NOOP} from '../consts';
 import {Exception} from '../types';
 
 /* ATTEMPTIFY */
 
-const attemptify = <FN extends ( ...args: any[] ) => any> ( fn: FN, handler?: ( error: Exception ) => any ): FN => {
+//TODO: Maybe publish this as a standalone package
+//TODO: The types here aren't exactly correct
 
-  return function attemptWrapper () {
+const attemptifyAsync = <FN extends ( ...args: any[] ) => Promise<any>> ( fn: FN, handler: ( error: Exception ) => any = NOOP ): FN => {
+
+  return function () {
+
+    return fn.apply ( undefined, arguments ).catch ( handler || NOOP );
+
+  } as FN;
+
+};
+
+const attemptifySync = <FN extends ( ...args: any[] ) => any> ( fn: FN, handler: ( error: Exception ) => any = NOOP ): FN => {
+
+  return function () {
 
     try {
 
@@ -15,7 +29,7 @@ const attemptify = <FN extends ( ...args: any[] ) => any> ( fn: FN, handler?: ( 
 
     } catch ( error ) {
 
-      if ( handler ) handler ( error );
+      return handler ( error );
 
     }
 
@@ -25,4 +39,4 @@ const attemptify = <FN extends ( ...args: any[] ) => any> ( fn: FN, handler?: ( 
 
 /* EXPORT */
 
-export default attemptify;
+export {attemptifyAsync, attemptifySync};

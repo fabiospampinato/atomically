@@ -7,11 +7,11 @@ import {Disposer} from '../types';
 
 const Queues: Record<string, Function[] | undefined> = {};
 
-/* TASKER */
+/* SCHEDULER */
 
 //TODO: Maybe publish this as a standalone package
 
-const Tasker = {
+const Scheduler = {
 
   next: ( id: string ): void => {
 
@@ -25,7 +25,7 @@ const Tasker = {
 
     if ( job ) {
 
-      job ( () => Tasker.next ( id ) );
+      job ( () => Scheduler.next ( id ) );
 
     } else {
 
@@ -35,7 +35,7 @@ const Tasker = {
 
   },
 
-  task: ( id: string ): Promise<Disposer> => {
+  schedule: ( id: string ): Promise<Disposer> => {
 
     return new Promise ( resolve => {
 
@@ -47,7 +47,7 @@ const Tasker = {
 
       if ( queue.length > 1 ) return;
 
-      resolve ( () => Tasker.next ( id ) );
+      resolve ( () => Scheduler.next ( id ) );
 
     });
 
@@ -57,4 +57,4 @@ const Tasker = {
 
 /* EXPORT */
 
-export default Tasker;
+export default Scheduler;
