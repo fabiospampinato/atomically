@@ -121,7 +121,7 @@ test('async tests', t => {
   })
 
   t.test('non-root tests', t => {
-    t.plan(24)
+    t.plan(26)
 
     writeFileAtomic('good', 'test', { mode: '0777' }, err => {
       t.notOk(err, 'No errors occur when passing in options')
@@ -196,6 +196,11 @@ test('async tests', t => {
     writeFileAtomic('good','test', {schedule}, err => {
       t.notOk(err);
     });
+    const tmpCreate = filePath => `.${filePath}.custom`;
+    const tmpCreated = filePath => t.is ( filePath, '.good.custom' );
+    writeFileAtomic('good','test', {tmpCreate, tmpCreated}, err => {
+      t.notOk(err)
+    })
   })
 
   t.test('errors for root', t => {
@@ -238,7 +243,7 @@ test('sync tests', t => {
   let tmpfile
 
   t.test('non-root', t => {
-    t.plan(25)
+    t.plan(27)
     noexception(t, 'No errors occur when passing in options', () => {
       writeFileAtomicSync('good', 'test', { mode: '0777' })
     })
@@ -322,6 +327,11 @@ test('sync tests', t => {
       writeFileAtomicSync('statful', 'test', optionsImmutable)
     })
     t.deepEquals(optionsImmutable, {});
+    const tmpCreate = filePath => `.${filePath}.custom`;
+    const tmpCreated = filePath => t.is ( filePath, '.good.custom' );
+    noexception(t, 'custom temp creator', () => {
+      writeFileAtomicSync('good', 'test', {tmpCreate, tmpCreated})
+    })
   })
 
   t.test('errors for root', t => {

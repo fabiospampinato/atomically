@@ -13,7 +13,7 @@ const Temp = {
 
   store: <Record<string, boolean>> {}, // filePath => purge
 
-  get: ( filePath: string, purge: boolean = true ): [string, Disposer] => {
+  create: ( filePath: string ): string => {
 
     const hash = crypto.randomBytes ( 3 ).toString ( 'hex' ), // 6 random hex characters
           timestamp = Date.now ().toString ().slice ( -10 ), // 10 precise timestamp digits
@@ -21,7 +21,15 @@ const Temp = {
           suffix = `.${prefix}${timestamp}${hash}`,
           tempPath = `${filePath}${suffix}`;
 
-    if ( tempPath in Temp.store ) return Temp.get ( filePath ); // Collision found, try again
+    return tempPath;
+
+  },
+
+  get: ( filePath: string, creator: ( filePath: string ) => string, purge: boolean = true ): [string, Disposer] => {
+
+    const tempPath = creator ( filePath );
+
+    if ( tempPath in Temp.store ) return Temp.get ( filePath, creator, purge ); // Collision found, try again
 
     Temp.store[tempPath] = purge;
 
