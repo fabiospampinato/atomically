@@ -1,7 +1,7 @@
 
 /* IMPORT */
 
-import {DEFAULT_ENCODING, DEFAULT_MODE, IS_POSIX} from './consts';
+import {DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_OPTIONS, IS_POSIX} from './consts';
 import FS from './utils/fs';
 import Lang from './utils/lang';
 import Scheduler from './utils/scheduler';
@@ -12,7 +12,7 @@ import {Path, Data, Disposer, Options, Callback} from './types';
 
 const writeFile = ( filePath: Path, data: Data, options?: Options | Callback, callback?: Callback ): Promise<void> => {
 
-  if ( Lang.isFunction ( options ) ) return writeFile ( filePath, data, {}, options );
+  if ( Lang.isFunction ( options ) ) return writeFile ( filePath, data, DEFAULT_OPTIONS, options );
 
   const promise = writeFileAsync ( filePath, data, options );
 
@@ -22,7 +22,7 @@ const writeFile = ( filePath: Path, data: Data, options?: Options | Callback, ca
 
 };
 
-const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {} ): Promise<void> => {
+const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DEFAULT_OPTIONS ): Promise<void> => {
 
   if ( Lang.isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
@@ -112,7 +112,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
 };
 
-const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): void => {
+const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_OPTIONS ): void => {
 
   if ( Lang.isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
 
