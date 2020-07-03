@@ -29,13 +29,17 @@ const runSingleSync = async ( name, fn, buffer ) => {
 
 const runAll = async ( name, buffer ) => {
   await runSingleAsync ( `${name} -> async -> write-file-atomic`, writeFileAtomic, buffer );
-  await runSingleAsync ( `${name} -> async -> write-file-atomic (fast)`, ( p, b, c ) => writeFileAtomic ( p, b, { mode: false, chown: false, fsync: false }, c ), buffer );
+  await runSingleAsync ( `${name} -> async -> write-file-atomic (faster)`, ( p, b, c ) => writeFileAtomic ( p, b, { mode: false, chown: false }, c ), buffer );
+  await runSingleAsync ( `${name} -> async -> write-file-atomic (fastest)`, ( p, b, c ) => writeFileAtomic ( p, b, { mode: false, chown: false, fsync: false }, c ), buffer );
   await runSingleAsync ( `${name} -> async -> atomically`, writeFile, buffer );
-  await runSingleAsync ( `${name} -> async -> atomically (fast)`, ( p, b, c ) => writeFile ( p, b, { mode: false, chown: false, fsync: false }, c ), buffer );
+  await runSingleAsync ( `${name} -> async -> atomically (faster)`, ( p, b, c ) => writeFile ( p, b, { mode: false, chown: false, fsyncWait: false }, c ), buffer );
+  await runSingleAsync ( `${name} -> async -> atomically (fastest)`, ( p, b, c ) => writeFile ( p, b, { mode: false, chown: false, fsync: false }, c ), buffer );
   runSingleSync ( `${name} -> sync -> write-file-atomic`, writeFileAtomic.sync, buffer );
-  runSingleSync ( `${name} -> sync -> write-file-atomic (fast)`, ( p, b ) => writeFileAtomic.sync ( p, b, { mode: false, chown: false, fsync: false } ), buffer );
+  runSingleSync ( `${name} -> sync -> write-file-atomic (faster)`, ( p, b ) => writeFileAtomic.sync ( p, b, { mode: false, chown: false } ), buffer );
+  runSingleSync ( `${name} -> sync -> write-file-atomic (fastest)`, ( p, b ) => writeFileAtomic.sync ( p, b, { mode: false, chown: false, fsync: false } ), buffer );
   runSingleSync ( `${name} -> sync -> atomically`, writeFileSync, buffer );
-  runSingleSync ( `${name} -> sync -> atomically (fast)`, ( p, b ) => writeFileSync ( p, b, { mode: false, chown: false, fsync: false } ), buffer );
+  runSingleSync ( `${name} -> sync -> atomically (faster)`, ( p, b ) => writeFileSync ( p, b, { mode: false, chown: false, fsyncWait: false } ), buffer );
+  runSingleSync ( `${name} -> sync -> atomically (fastest)`, ( p, b ) => writeFileSync ( p, b, { mode: false, chown: false, fsync: false } ), buffer );
 };
 
 const run = async () => {
