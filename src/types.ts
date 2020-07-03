@@ -1,13 +1,15 @@
 
 /* TYPES */
 
-type Callback = ( err: Exception | void ) => any;
+type Callback = ( error: Exception | void ) => any;
 
 type Data = Buffer | string | undefined;
 
 type Disposer = () => void;
 
 type Exception = NodeJS.ErrnoException;
+
+type FN<Arguments extends any[] = any[], Return = any> = ( ...args: Arguments ) => Return;
 
 type Options = string | {
   chown?: { gid: number, uid: number } | false,
@@ -26,4 +28,4 @@ type Path = string;
 
 /* EXPORT */
 
-export {Callback, Data, Disposer, Exception, Options, Path};
+export {Callback, Data, Disposer, Exception, FN, Options, Path};

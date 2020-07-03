@@ -2,24 +2,24 @@
 /* IMPORT */
 
 import {NOOP} from '../consts';
-import {Exception} from '../types';
+import {Exception, FN} from '../types';
 
 /* ATTEMPTIFY */
 
 //TODO: Maybe publish this as a standalone package
-//TODO: The types here aren't exactly correct
+//FIXME: The type castings here aren't exactly correct
 
-const attemptifyAsync = <FN extends ( ...args: any[] ) => Promise<any>> ( fn: FN, handler: ( error: Exception ) => any = NOOP ): FN => {
+const attemptifyAsync = <T extends FN> ( fn: T, onError: FN<[Exception]> = NOOP ): T => {
 
   return function () {
 
-    return fn.apply ( undefined, arguments ).catch ( handler || NOOP );
+    return fn.apply ( undefined, arguments ).catch ( onError );
 
-  } as FN;
+  } as T;
 
 };
 
-const attemptifySync = <FN extends ( ...args: any[] ) => any> ( fn: FN, handler: ( error: Exception ) => any = NOOP ): FN => {
+const attemptifySync = <T extends FN> ( fn: T, onError: FN<[Exception]> = NOOP ): T => {
 
   return function () {
 
@@ -29,11 +29,11 @@ const attemptifySync = <FN extends ( ...args: any[] ) => any> ( fn: FN, handler:
 
     } catch ( error ) {
 
-      return handler ( error );
+      return onError ( error );
 
     }
 
-  } as FN;
+  } as T;
 
 };
 

@@ -8,13 +8,31 @@ import {Exception} from '../types';
 
 const Handlers = {
 
-  onChownError: ( error: Exception ): void => { //URL: https://github.com/isaacs/node-graceful-fs/blob/master/polyfills.js#L315-L342
+  isChangeErrorOk: ( error: Exception ): boolean => { //URL: https://github.com/isaacs/node-graceful-fs/blob/master/polyfills.js#L315-L342
 
     const {code} = error;
 
-    if ( code === 'ENOSYS' ) return;
+    if ( code === 'ENOSYS' ) return true;
 
-    if ( !IS_USER_ROOT && ( code === 'EINVAL' || code === 'EPERM' ) ) return;
+    if ( !IS_USER_ROOT && ( code === 'EINVAL' || code === 'EPERM' ) ) return true;
+
+    return false;
+
+  },
+
+  isRetriableError: ( error: Exception ): boolean => {
+
+    const {code} = error;
+
+    if ( code === 'EMFILE' || code === 'ENFILE' || code === 'EAGAIN' || code === 'EBUSY' || code === 'EACCESS' || code === 'EPERM' ) return true;
+
+    return false;
+
+  },
+
+  onChangeError: ( error: Exception ): void => {
+
+    if ( Handlers.isChangeErrorOk ( error ) ) return;
 
     throw error;
 

@@ -16,8 +16,8 @@ const FS = {
   rename: promisify ( fs.rename ),
   write: promisify ( fs.write ),
 
-  chmodAttempt: attemptifyAsync ( promisify ( fs.chmod ), Handlers.onChownError ),
-  chownAttempt: attemptifyAsync ( promisify ( fs.chown ), Handlers.onChownError ),
+  chmodAttempt: attemptifyAsync ( promisify ( fs.chmod ), Handlers.onChangeError ),
+  chownAttempt: attemptifyAsync ( promisify ( fs.chown ), Handlers.onChangeError ),
   closeAttempt: attemptifyAsync ( promisify ( fs.close ) ),
   fsyncAttempt: attemptifyAsync ( promisify ( fs.fsync ) ),
   realpathAttempt: attemptifyAsync ( promisify ( fs.realpath ) ),
@@ -30,8 +30,8 @@ const FS = {
   renameSync: fs.renameSync,
   writeSync: fs.writeSync,
 
-  chmodSyncAttempt: attemptifySync ( fs.chmodSync, Handlers.onChownError ),
-  chownSyncAttempt: attemptifySync ( fs.chownSync, Handlers.onChownError ),
+  chmodSyncAttempt: attemptifySync ( fs.chmodSync, Handlers.onChangeError ),
+  chownSyncAttempt: attemptifySync ( fs.chownSync, Handlers.onChangeError ),
   closeSyncAttempt: attemptifySync ( fs.closeSync ),
   realpathSyncAttempt: attemptifySync ( fs.realpathSync ),
   statSyncAttempt: attemptifySync ( fs.statSync ),
