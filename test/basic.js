@@ -233,33 +233,33 @@ test('sync tests', t => {
     noexception(t, 'fsync never called if options.fsync is falsy', () => {
       writeFileAtomicSync('good', 'test', { fsync: false })
     })
-    noexception(t, 'tmpfileCreated is called on success', () => {
+    noexception(t, 'tmpCreated is called on success', () => {
       writeFileAtomicSync('good', 'test', {
-        tmpfileCreated (gottmpfile) {
+        tmpCreated (gottmpfile) {
           tmpfile = gottmpfile
         }
       })
-      t.match(tmpfile, /^good\.tmp-\w+$/, 'tmpfileCreated called for success')
+      t.match(tmpfile, /^good\.tmp-\w+$/, 'tmpCreated called for success')
     })
 
     tmpfile = undefined
     throws(t, 'ENOOPEN', 'fs.openSync failures propagate', () => {
       writeFileAtomicSync('noopen', 'test', {
-        tmpfileCreated (gottmpfile) {
+        tmpCreated (gottmpfile) {
           tmpfile = gottmpfile
         }
       })
     })
-    t.is(tmpfile, undefined, 'tmpfileCreated not called for open failure')
+    t.is(tmpfile, undefined, 'tmpCreated not called for open failure')
 
     throws(t, 'ENOWRITE', 'fs.writeSync failures propagate', () => {
       writeFileAtomicSync('nowrite', 'test', {
-        tmpfileCreated (gottmpfile) {
+        tmpCreated (gottmpfile) {
           tmpfile = gottmpfile
         }
       })
     })
-    t.match(tmpfile, /^nowrite\.tmp-\w+$/, 'tmpfileCreated called for failure after open')
+    t.match(tmpfile, /^nowrite\.tmp-\w+$/, 'tmpCreated called for failure after open')
 
     throws(t, 'ENOCHOWN', 'Chown failures propagate', () => {
       writeFileAtomicSync('nochown', 'test', { chown: { uid: 100, gid: 100 } })
@@ -328,30 +328,30 @@ test('promises', async t => {
   })
 
   await writeFileAtomic('good', 'test', {
-    tmpfileCreated (gottmpfile) {
+    tmpCreated (gottmpfile) {
       tmpfile = gottmpfile
     }
   })
-  t.match(tmpfile, /^good\.tmp-\w+$/, 'tmpfileCreated is called for success')
+  t.match(tmpfile, /^good\.tmp-\w+$/, 'tmpCreated is called for success')
 
   await writeFileAtomic('good', 'test', {
-    tmpfileCreated (gottmpfile) {
+    tmpCreated (gottmpfile) {
       return Promise.resolve()
     }
   })
 
   tmpfile = undefined
   await t.rejects(writeFileAtomic('noopen', 'test', {
-    tmpfileCreated (gottmpfile) {
+    tmpCreated (gottmpfile) {
       tmpfile = gottmpfile
     }
   }))
-  t.is(tmpfile, undefined, 'tmpfileCreated is not called on open failure')
+  t.is(tmpfile, undefined, 'tmpCreated is not called on open failure')
 
   await t.rejects(writeFileAtomic('nowrite', 'test', {
-    tmpfileCreated (gottmpfile) {
+    tmpCreated (gottmpfile) {
       tmpfile = gottmpfile
     }
   }))
-  t.match(tmpfile, /^nowrite\.tmp-\w+$/, 'tmpfileCreated is called if failure is after open')
+  t.match(tmpfile, /^nowrite\.tmp-\w+$/, 'tmpCreated is called if failure is after open')
 })

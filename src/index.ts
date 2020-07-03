@@ -58,7 +58,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = {}
 
     fd = await FS.open ( tempPath, 'w', options.mode || DEFAULT_MODE );
 
-    if ( options.tmpfileCreated ) options.tmpfileCreated ( tempPath );
+    if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
     if ( Lang.isString ( data ) ) {
 
@@ -143,7 +143,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = {} ): voi
 
     fd = FS.openSync ( tempPath, 'w', options.mode || DEFAULT_MODE );
 
-    if ( options.tmpfileCreated ) options.tmpfileCreated ( tempPath );
+    if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
     if ( Lang.isString ( data ) ) {
 
