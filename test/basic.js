@@ -121,7 +121,7 @@ test('async tests', t => {
   })
 
   t.test('non-root tests', t => {
-    t.plan(21)
+    t.plan(24)
 
     writeFileAtomic('good', 'test', { mode: '0777' }, err => {
       t.notOk(err, 'No errors occur when passing in options')
@@ -184,6 +184,17 @@ test('async tests', t => {
     writeFileAtomic('statful', 'test', optionsImmutable, err => {
       t.notOk(err);
       t.deepEquals(optionsImmutable, {});
+    });
+    const schedule = filePath => {
+      t.is(filePath, 'good');
+      return new Promise ( resolve => {
+        resolve ( () => {
+          t.is(true,true);
+        });
+      });
+    };
+    writeFileAtomic('good','test', {schedule}, err => {
+      t.notOk(err);
     });
   })
 

@@ -26,12 +26,15 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
   if ( Lang.isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
-  let schedulerDisposer: Disposer | null = null,
+  let schedulerCustomDisposer: Disposer | null = null,
+      schedulerDisposer: Disposer | null = null,
       tempDisposer: Disposer | null = null,
       tempPath: string | null = null,
       fd: number | null = null;
 
   try {
+
+    if ( options.schedule ) schedulerCustomDisposer = await options.schedule ( filePath );
 
     schedulerDisposer = await Scheduler.schedule ( filePath );
 
@@ -105,6 +108,8 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
     if ( fd ) await FS.closeAttempt ( fd );
 
     if ( tempPath ) Temp.purge ( tempPath );
+
+    if ( schedulerCustomDisposer ) schedulerCustomDisposer ();
 
     if ( schedulerDisposer ) schedulerDisposer ();
 
