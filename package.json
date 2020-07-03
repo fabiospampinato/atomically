@@ -38,6 +38,7 @@
   "devDependencies": {
     "@types/node": "^12.7.2",
     "mkdirp": "^1.0.4",
+    "promise-resolve-timeout": "^1.2.1",
     "require-inject": "^1.4.4",
     "rimraf": "^3.0.2",
     "tap": "^14.10.7",
