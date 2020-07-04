@@ -99,7 +99,17 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
     if ( options.mode ) await FS.chmodAttempt ( tempPath, options.mode );
 
-    await FS.renameRetry ( timeout )( tempPath, filePath );
+    try {
+
+      await FS.renameRetry ( timeout )( tempPath, filePath );
+
+    } catch ( error ) {
+
+      if ( error.code !== 'ENAMETOOLONG' ) throw error;
+
+      await FS.renameRetry ( timeout )( tempPath, Temp.truncate ( filePath ) );
+
+    }
 
     tempDisposer ();
 
@@ -190,7 +200,17 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
     if ( options.mode ) FS.chmodSyncAttempt ( tempPath, options.mode );
 
-    FS.renameSyncRetry ( timeout )( tempPath, filePath );
+    try {
+
+      FS.renameSyncRetry ( timeout )( tempPath, filePath );
+
+    } catch ( error ) {
+
+      if ( error.code !== 'ENAMETOOLONG' ) throw error;
+
+      FS.renameSyncRetry ( timeout )( tempPath, Temp.truncate ( filePath ) );
+
+    }
 
     tempDisposer ();
 

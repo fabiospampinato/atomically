@@ -15,6 +15,8 @@ const IS_POSIX = !!process.getuid;
 
 const IS_USER_ROOT = process.getuid ? !process.getuid () : false;
 
+const LIMIT_BASENAME_LENGTH = 128; //TODO: fetch the real limit from the filesystem //TODO: fetch the whole-path length limit too
+
 const NOOP = () => {};
 
 /* EXPORT */

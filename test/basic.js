@@ -157,7 +157,7 @@ test('async tests', t => {
   })
 
   t.test('non-root tests', t => {
-    t.plan(26)
+    t.plan(27)
 
     writeFileAtomic('good', 'test', { mode: '0777' }, err => {
       t.notOk(err, 'No errors occur when passing in options')
@@ -237,6 +237,11 @@ test('async tests', t => {
     writeFileAtomic('good','test', {tmpCreate, tmpCreated}, err => {
       t.notOk(err)
     })
+    const longPath = path.join(os.tmpdir(),'.012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789.txt');
+    const {writeFile: writeFileAtomicNative} = requireInject('../dist', { fs });
+    writeFileAtomicNative(longPath,'test', err => {
+      t.notOk(err)
+    })
   })
 
   t.test('errors for root', t => {
@@ -287,7 +292,7 @@ test('sync tests', t => {
   let tmpfile
 
   t.test('non-root', t => {
-    t.plan(36)
+    t.plan(37)
     noexception(t, 'No errors occur when passing in options', () => {
       writeFileAtomicSync('good', 'test', { mode: '0777' })
     })
@@ -400,6 +405,11 @@ test('sync tests', t => {
     })
     t.is(false,fs.existsSync(path2));
     t.is(true,fs.existsSync(tmpPath2));
+    const longPath = path.join(os.tmpdir(),'.012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789.txt');
+    noexception(t, 'temp files are truncated', () => {
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs });
+      writeFileAtomicSync(longPath, 'test')
+    })
   })
 
   t.test('errors for root', t => {
