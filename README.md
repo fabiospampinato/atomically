@@ -15,6 +15,7 @@ Read and write files atomically and reliably.
   - Writes are atomic, meaning that first a temporary file containing the new content is written, then this file is renamed to the final path, this way it's impossible to get a corrupt/partially-written file.
   - Writes happening to the same path are queued, ensuring they don't interfere with each other.
   - Temporary files can be configured to not be purged from disk if the write operation fails, which is useful for when keeping the temporary file is better than just losing data.
+  - Any needed missing parent folder will be created automatically.
   - Symlinks are resolved automatically.
   - `ENOSYS` errors on `chmod`/`chown` operations are ignored.
   - `EINVAL`/`EPERM` errors on `chmod`/`chown` operations, in POSIX systems where the user is not root, are ignored.

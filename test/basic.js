@@ -19,6 +19,9 @@ let unlinked = []
 
 const fsMock = Object.assign ( {}, fs, {
   /* ASYNC */
+  mkdir (filename, opts, cb) {
+    return cb(null);
+  },
   realpath (filename, cb) {
     return cb(null, filename)
   },
@@ -68,6 +71,7 @@ const fsMock = Object.assign ( {}, fs, {
     cb()
   },
   /* SYNC */
+  mkdirSync (filename) {},
   realpathSync (filename, cb) {
     return filename
   },
@@ -157,7 +161,7 @@ test('async tests', t => {
   })
 
   t.test('non-root tests', t => {
-    t.plan(27)
+    t.plan(28)
 
     writeFileAtomic('good', 'test', { mode: '0777' }, err => {
       t.notOk(err, 'No errors occur when passing in options')
@@ -242,6 +246,10 @@ test('async tests', t => {
     writeFileAtomicNative(longPath,'test', err => {
       t.notOk(err)
     })
+    const pathMissingFolders = path.join(os.tmpdir(),String(Math.random()),String(Math.random()),String(Math.random()),'foo.txt');
+    writeFileAtomicNative(pathMissingFolders,'test', err => {
+      t.notOk(err)
+    })
   })
 
   t.test('errors for root', t => {
@@ -295,7 +303,7 @@ test('sync tests', t => {
   let tmpfile
 
   t.test('non-root', t => {
-    t.plan(37)
+    t.plan(38)
     noexception(t, 'No errors occur when passing in options', () => {
       writeFileAtomicSync('good', 'test', { mode: '0777' })
     })
@@ -412,6 +420,11 @@ test('sync tests', t => {
     noexception(t, 'temp files are truncated', () => {
       const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs });
       writeFileAtomicSync(longPath, 'test')
+    })
+    const pathMissingFolders = path.join(os.tmpdir(),String(Math.random()),String(Math.random()),String(Math.random()),'foo.txt');
+    noexception(t, 'parent folders are created', () => {
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs });
+      writeFileAtomicSync(pathMissingFolders, 'test')
     })
   })
 

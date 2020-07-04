@@ -9,6 +9,9 @@ const requireInject = require('require-inject')
 // defining mock for fs so its functions can be modified
 const fsMock = Object.assign ( {}, fs, {
   /* ASYNC */
+  mkdir (filename, opts, cb) {
+    return cb(null);
+  },
   realpath (filename, cb) {
     return cb(null, filename)
   },
@@ -49,6 +52,7 @@ const fsMock = Object.assign ( {}, fs, {
     cb()
   },
   /* SYNC */
+  mkdirSync (filename) {},
   realpathSync (filename, cb) {
     return filename
   },

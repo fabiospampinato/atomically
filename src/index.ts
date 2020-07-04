@@ -1,7 +1,8 @@
 
 /* IMPORT */
 
-import {DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './consts';
+import * as path from 'path';
+import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './consts';
 import FS from './utils/fs';
 import Lang from './utils/lang';
 import Scheduler from './utils/scheduler';
@@ -87,7 +88,14 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: string | Wri
 
     }
 
-    fd = await FS.openRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_MODE );
+    const parentPath = path.dirname ( filePath );
+
+    await FS.mkdirAttempt ( parentPath, {
+      mode: DEFAULT_FOLDER_MODE,
+      recursive: true
+    });
+
+    fd = await FS.openRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
     if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
@@ -188,7 +196,14 @@ const writeFileSync = ( filePath: Path, data: Data, options: string | WriteOptio
 
     }
 
-    fd = FS.openSyncRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_MODE );
+    const parentPath = path.dirname ( filePath );
+
+    FS.mkdirSyncAttempt ( parentPath, {
+      mode: DEFAULT_FOLDER_MODE,
+      recursive: true
+    });
+
+    fd = FS.openSyncRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
     if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
