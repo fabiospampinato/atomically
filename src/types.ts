@@ -11,7 +11,15 @@ type Exception = NodeJS.ErrnoException;
 
 type FN<Arguments extends any[] = any[], Return = any> = ( ...args: Arguments ) => Return;
 
-type Options = string | {
+type Path = string;
+
+type ReadOptions = {
+  encoding?: string | null,
+  mode?: string | number | false,
+  timeout?: number
+};
+
+type WriteOptions = {
   chown?: { gid: number, uid: number } | false,
   encoding?: string | null,
   fsync?: boolean,
@@ -24,8 +32,6 @@ type Options = string | {
   tmpPurge?: boolean
 };
 
-type Path = string;
-
 /* EXPORT */
 
-export {Callback, Data, Disposer, Exception, FN, Options, Path};
+export {Callback, Data, Disposer, Exception, FN, Path, ReadOptions, WriteOptions};

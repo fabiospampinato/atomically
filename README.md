@@ -1,6 +1,6 @@
 # Atomically
 
-Write files atomically and reliably.
+Read and write files atomically and reliably.
 
 ## Features
 
@@ -8,9 +8,10 @@ Write files atomically and reliably.
   - This library is a rewrite of [`write-file-atomic`](https://github.com/npm/write-file-atomic), with some important enhancements on top, you can largely use this as a drop-in replacement.
   - This library is written in TypeScript, so types aren't an afterthought but come with library.
   - This library is slightly faster than [`write-file-atomic`](https://github.com/npm/write-file-atomic), and it can be 10x faster, while being essentially just as safe, by using the `fsyncWait` option.
-  - This library has 0 dependencies, so there's less code to vet and the entire thing is roughly 30% smaller than [`write-file-atomic`](https://github.com/npm/write-file-atomic).
+  - This library has 0 dependencies, so there's less code to vet and the entire thing is roughly 20% smaller than [`write-file-atomic`](https://github.com/npm/write-file-atomic).
   - This library tries harder to write files on disk than [`write-file-atomic`](https://github.com/npm/write-file-atomic) does, by default retrying some failed operations and handling some more errors.
 - Reliability:
+  - Reads are retried, when appropriate, until they succeed or the timeout is reached.
   - Writes are atomic, meaning that first a temporary file containing the new content is written, then this file is renamed to the final path, this way it's impossible to get a corrupt/partially-written file.
   - Writes happening to the same path are queued, ensuring they don't interfere with each other.
   - Temporary files can be configured to not be purged from disk if the write operation fails, which is useful for when keeping the temporary file is better than just losing data.
@@ -32,7 +33,8 @@ Write files atomically and reliably.
     - if custom ids are provided they will be used.
     - if `false` the default ids are used.
   - `encoding`: it allows you to specify the encoding of the file content:
-    - by default `utf8` is used.
+    - by default when reading no encoding is specified and a raw buffer is returned.
+    - by default when writing `utf8` is used when.
   - `fsync`: it allows you to control whether the `fsync` syscall is triggered right after writing the file or not:
     - by default the syscall is triggered immediately after writing the file, increasing the chances that the file will actually be written to disk in case of imminent catastrophic failures, like power outages.
     - if `false` the syscall won't be triggered.
@@ -71,7 +73,13 @@ This is the shape of the optional options object:
 ```ts
 type Disposer = () => void;
 
-type Options = string | {
+type ReadOptions = string | {
+  encoding?: string | null,
+  mode?: string | number | false,
+  timeout?: number
+};
+
+type WriteOptions = string | {
   chown?: { gid: number, uid: number } | false,
   encoding?: string | null,
   fsync?: boolean,
@@ -88,14 +96,22 @@ type Options = string | {
 This is the shape of the provided functions:
 
 ```ts
-function writeFile ( filePath: string, data: Buffer | string | undefined, options?: Options ): Promise<void>;
-function writeFileSync ( filePath: string, data: Buffer | string | undefined, options?: Options ): void;
+function readFile ( filePath: string, options?: ReadOptions ): Promise<Buffer | string>;
+function readFileSync ( filePath: string, options?: ReadOptions ): Buffer | string;
+function writeFile ( filePath: string, data: Buffer | string | undefined, options?: WriteOptions ): Promise<void>;
+function writeFileSync ( filePath: string, data: Buffer | string | undefined, options?: WriteOptions ): void;
 ```
 
 This is how to use the library:
 
 ```ts
-import {writeFile, writeFileSync} from 'atomically';
+import {readFile, readFileSync, writeFile, writeFileSync} from 'atomically';
+
+// Asynchronous read with default option
+const buffer = await readFile ( '/foo.txt' );
+
+// Synchronous read assuming the encoding is "utf8"
+const string = readFileSync ( '/foo.txt', 'utf8' );
 
 // Asynchronous write with default options
 await writeFile ( '/foo.txt', 'my_data' );

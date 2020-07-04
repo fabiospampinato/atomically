@@ -1,18 +1,42 @@
 
 /* IMPORT */
 
-import {DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './consts';
+import {DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './consts';
 import FS from './utils/fs';
 import Lang from './utils/lang';
 import Scheduler from './utils/scheduler';
 import Temp from './utils/temp';
-import {Path, Data, Disposer, Options, Callback} from './types';
+import {Callback, Data, Disposer, Path, ReadOptions, WriteOptions} from './types';
 
 /* ATOMICALLY */
 
-const writeFile = ( filePath: Path, data: Data, options?: Options | Callback, callback?: Callback ): Promise<void> => {
+function readFile ( filePath: Path, options: string | ReadOptions & { encoding: string } ): Promise<string>;
+function readFile ( filePath: Path, options?: ReadOptions ): Promise<Buffer>;
+function readFile ( filePath: Path, options: string | ReadOptions = DEFAULT_READ_OPTIONS ): Promise<Buffer | string> {
 
-  if ( Lang.isFunction ( options ) ) return writeFile ( filePath, data, DEFAULT_OPTIONS, options );
+  if ( Lang.isString ( options ) ) return readFile ( filePath, { encoding: options } );
+
+  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC );
+
+  return FS.readFileRetry ( timeout )( filePath, options );
+
+};
+
+function readFileSync ( filePath: Path, options: string | ReadOptions & { encoding: string } ): string;
+function readFileSync ( filePath: Path, options?: ReadOptions ): Buffer;
+function readFileSync ( filePath: Path, options: string | ReadOptions = DEFAULT_READ_OPTIONS ): Buffer | string {
+
+  if ( Lang.isString ( options ) ) return readFileSync ( filePath, { encoding: options } );
+
+  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_SYNC );
+
+  return FS.readFileSyncRetry ( timeout )( filePath, options );
+
+};
+
+const writeFile = ( filePath: Path, data: Data, options?: string | WriteOptions | Callback, callback?: Callback ): Promise<void> => {
+
+  if ( Lang.isFunction ( options ) ) return writeFile ( filePath, data, DEFAULT_WRITE_OPTIONS, options );
 
   const promise = writeFileAsync ( filePath, data, options );
 
@@ -22,7 +46,7 @@ const writeFile = ( filePath: Path, data: Data, options?: Options | Callback, ca
 
 };
 
-const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DEFAULT_OPTIONS ): Promise<void> => {
+const writeFileAsync = async ( filePath: Path, data: Data, options: string | WriteOptions = DEFAULT_WRITE_OPTIONS ): Promise<void> => {
 
   if ( Lang.isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
@@ -129,7 +153,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
 };
 
-const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_OPTIONS ): void => {
+const writeFileSync = ( filePath: Path, data: Data, options: string | WriteOptions = DEFAULT_WRITE_OPTIONS ): void => {
 
   if ( Lang.isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
 
@@ -228,4 +252,4 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
 /* EXPORT */
 
-export {writeFile, writeFileSync};
+export {readFile, readFileSync, writeFile, writeFileSync};

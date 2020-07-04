@@ -1,6 +1,6 @@
 {
   "name": "atomically",
-  "description": "Write files atomically and reliably.",
+  "description": "Read and write files atomically and reliably.",
   "version": "1.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,6 +27,7 @@
   },
   "keywords": [
     "atomic",
+    "read",
     "write",
     "file",
     "reliable"
