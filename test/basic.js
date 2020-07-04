@@ -262,10 +262,13 @@ test('async tests', t => {
 })
 
 test('unstable async tests', t => {
-  t.plan(1);
+  t.plan(2);
   const {writeFile: writeFileAtomic} = requireInject('../dist', { fs: fsMockUnstable });
   writeFileAtomic('good', 'test', err => {
     t.notOk(err, 'No errors occur when retryable errors are thrown')
+  })
+  writeFileAtomic('good', 'test', { timeout: 0 }, err => {
+    t.is(!!err.code, true, 'Retrying can be disabled')
   })
 });
 
@@ -430,8 +433,13 @@ test('sync tests', t => {
 })
 
 test('unstable sync tests', t => {
-  t.plan(1);
+  t.plan(2);
 
+  const throws = function (t, msg, todo) {
+    let err
+    try { todo() } catch (e) { err = e }
+    t.is(!!err.code, true, msg)
+  }
   const noexception = function (t, msg, todo) {
     let err
     try { todo() } catch (e) { err = e }
@@ -441,6 +449,11 @@ test('unstable sync tests', t => {
   noexception(t, 'No errors occur when retryable errors are thrown', () => {
     const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMockUnstable });
     writeFileAtomicSync('good', 'test')
+  })
+
+  throws(t, 'retrying can be disabled', () => {
+    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMockUnstable });
+    writeFileAtomicSync('good', 'test', { timeout: 0 })
   })
 });
 

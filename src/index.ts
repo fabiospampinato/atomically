@@ -26,7 +26,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
   if ( Lang.isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
-  const timeout = Date.now () + ( options.timeout || DEFAULT_TIMEOUT_ASYNC );
+  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC );
 
   let schedulerCustomDisposer: Disposer | null = null,
       schedulerDisposer: Disposer | null = null,
@@ -133,7 +133,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
   if ( Lang.isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
 
-  const timeout = Date.now () + ( options.timeout || DEFAULT_TIMEOUT_SYNC );
+  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_SYNC );
 
   let tempDisposer: Disposer | null = null,
       tempPath: string | null = null,
