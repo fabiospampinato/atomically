@@ -2,6 +2,7 @@
 
 process.setMaxListeners(1000000);
 
+const _ = require('lodash')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
@@ -107,6 +108,39 @@ const fsMock = Object.assign ( {}, fs, {
     if (/nostat/.test(tmpfile)) throw createErr('ENOSTAT')
     if (/statful/.test(tmpfile)) return fs.statSync('/');
   }
+});
+
+const makeUnstableAsyncFn = function () {
+  return function () {
+    if ( Math.random () <= .9 ) {
+      const code = _.shuffle ([ 'EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM' ])[0];
+      throw createErr ( code );
+    }
+    return arguments[arguments.length -1](null, arguments[0]);
+  };
+};
+
+const makeUnstableSyncFn = function ( fn ) {
+  return function () {
+    if ( Math.random () <= .9 ) {
+      const code = _.shuffle ([ 'EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM' ])[0];
+      throw createErr ( code );
+    }
+    return fn.apply(undefined, arguments)
+  };
+};
+
+const fsMockUnstable = Object.assign ( {}, fsMock, {
+  open: makeUnstableAsyncFn (),
+  write: makeUnstableAsyncFn (),
+  fsync: makeUnstableAsyncFn (),
+  close: makeUnstableAsyncFn (),
+  rename: makeUnstableAsyncFn (),
+  openSync: makeUnstableSyncFn ( _.identity ),
+  writeSync: makeUnstableSyncFn ( _.noop ),
+  fsyncSync: makeUnstableSyncFn ( _.noop ),
+  closeSync: makeUnstableSyncFn ( _.noop ),
+  renameSync: makeUnstableSyncFn ( _.noop )
 });
 
 const {writeFile: writeFileAtomic, writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMock });
@@ -221,6 +255,14 @@ test('async tests', t => {
     })
   })
 })
+
+test('unstable async tests', t => {
+  t.plan(1);
+  const {writeFile: writeFileAtomic} = requireInject('../dist', { fs: fsMockUnstable });
+  writeFileAtomic('good', 'test', err => {
+    t.notOk(err, 'No errors occur when retryable errors are thrown')
+  })
+});
 
 test('sync tests', t => {
   t.plan(2)
@@ -376,6 +418,21 @@ test('sync tests', t => {
     })
   })
 })
+
+test('unstable sync tests', t => {
+  t.plan(1);
+
+  const noexception = function (t, msg, todo) {
+    let err
+    try { todo() } catch (e) { err = e }
+    t.ifError(err, msg)
+  }
+
+  noexception(t, 'No errors occur when retryable errors are thrown', () => {
+    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMockUnstable });
+    writeFileAtomicSync('good', 'test')
+  })
+});
 
 test('promises', async t => {
   let tmpfile

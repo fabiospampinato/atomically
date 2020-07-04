@@ -1,7 +1,7 @@
 
 /* IMPORT */
 
-import {DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_OPTIONS, IS_POSIX} from './consts';
+import {DEFAULT_ENCODING, DEFAULT_MODE, DEFAULT_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './consts';
 import FS from './utils/fs';
 import Lang from './utils/lang';
 import Scheduler from './utils/scheduler';
@@ -25,6 +25,8 @@ const writeFile = ( filePath: Path, data: Data, options?: Options | Callback, ca
 const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DEFAULT_OPTIONS ): Promise<void> => {
 
   if ( Lang.isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
+
+  const timeout = Date.now () + ( options.timeout || DEFAULT_TIMEOUT_ASYNC );
 
   let schedulerCustomDisposer: Disposer | null = null,
       schedulerDisposer: Disposer | null = null,
@@ -61,17 +63,17 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
     }
 
-    fd = await FS.open ( tempPath, 'w', options.mode || DEFAULT_MODE );
+    fd = await FS.openRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_MODE );
 
     if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
     if ( Lang.isString ( data ) ) {
 
-      await FS.write ( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      await FS.writeRetry ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
 
     } else if ( !Lang.isUndefined ( data ) ) {
 
-      await FS.write ( fd, data, 0, data.length, 0 );
+      await FS.writeRetry ( timeout )( fd, data, 0, data.length, 0 );
 
     }
 
@@ -79,7 +81,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
       if ( options.fsyncWait !== false ) {
 
-        await FS.fsync ( fd );
+        await FS.fsyncRetry ( timeout )( fd );
 
       } else {
 
@@ -89,7 +91,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
     }
 
-    await FS.close ( fd );
+    await FS.closeRetry ( timeout )( fd );
 
     fd = null;
 
@@ -97,7 +99,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 
     if ( options.mode ) await FS.chmodAttempt ( tempPath, options.mode );
 
-    await FS.rename ( tempPath, filePath );
+    await FS.renameRetry ( timeout )( tempPath, filePath );
 
     tempDisposer ();
 
@@ -120,6 +122,8 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: Options = DE
 const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_OPTIONS ): void => {
 
   if ( Lang.isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
+
+  const timeout = Date.now () + ( options.timeout || DEFAULT_TIMEOUT_SYNC );
 
   let tempDisposer: Disposer | null = null,
       tempPath: string | null = null,
@@ -150,17 +154,17 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
     }
 
-    fd = FS.openSync ( tempPath, 'w', options.mode || DEFAULT_MODE );
+    fd = FS.openSyncRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_MODE );
 
     if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
     if ( Lang.isString ( data ) ) {
 
-      FS.writeSync ( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      FS.writeSyncRetry ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
 
     } else if ( !Lang.isUndefined ( data ) ) {
 
-      FS.writeSync ( fd, data, 0, data.length, 0 );
+      FS.writeSyncRetry ( timeout )( fd, data, 0, data.length, 0 );
 
     }
 
@@ -168,7 +172,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
       if ( options.fsyncWait !== false ) {
 
-        FS.fsyncSync ( fd );
+        FS.fsyncSyncRetry ( timeout )( fd );
 
       } else {
 
@@ -178,7 +182,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
     }
 
-    FS.closeSync ( fd );
+    FS.closeSyncRetry ( timeout )( fd );
 
     fd = null;
 
@@ -186,7 +190,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Options = DEFAULT_O
 
     if ( options.mode ) FS.chmodSyncAttempt ( tempPath, options.mode );
 
-    FS.renameSync ( tempPath, filePath );
+    FS.renameSyncRetry ( timeout )( tempPath, filePath );
 
     tempDisposer ();
 
