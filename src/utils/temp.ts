@@ -1,7 +1,6 @@
 
 /* IMPORT */
 
-import * as crypto from 'crypto';
 import * as path from 'path';
 import {LIMIT_BASENAME_LENGTH} from '../consts';
 import {Disposer} from '../types';
@@ -17,10 +16,10 @@ const Temp = {
 
   create: ( filePath: string ): string => {
 
-    const hash = crypto.randomBytes ( 3 ).toString ( 'hex' ), // 6 random hex characters
+    const randomness = `000000${Math.floor ( Math.random () * 16777215 ).toString ( 16 )}`.slice ( -6 ), // 6 random-enough hex characters
           timestamp = Date.now ().toString ().slice ( -10 ), // 10 precise timestamp digits
           prefix = 'tmp-',
-          suffix = `.${prefix}${timestamp}${hash}`,
+          suffix = `.${prefix}${timestamp}${randomness}`,
           tempPath = `${filePath}${suffix}`;
 
     return tempPath;
