@@ -11,7 +11,7 @@
     "compile:watch": "tsc --skipLibCheck --watch",
     "test": "tap --no-coverage-report",
     "test:watch": "tap --no-coverage-report --watch",
-    "prepublishOnly": "npm run clean && npm run compile"
+    "prepublishOnly": "npm run clean && npm run compile && npm run test"
   },
   "bugs": {
     "url": "https://github.com/fabiospampinato/atomically/issues"
