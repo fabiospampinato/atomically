@@ -33,11 +33,12 @@
     "reliable"
   ],
   "engines": {
-    "node": ">=12.12.0"
+    "node": ">=10.12.0"
   },
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^12.7.2",
+    "lodash": "^4.17.19",
     "mkdirp": "^1.0.4",
     "promise-resolve-timeout": "^1.2.1",
     "require-inject": "^1.4.4",
