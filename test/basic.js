@@ -116,7 +116,7 @@ const fsMock = Object.assign ( {}, fs, {
 
 const makeUnstableAsyncFn = function () {
   return function () {
-    if ( Math.random () <= .9 ) {
+    if ( Math.random () <= .75 ) {
       const code = _.shuffle ([ 'EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM' ])[0];
       throw createErr ( code );
     }
@@ -126,7 +126,7 @@ const makeUnstableAsyncFn = function () {
 
 const makeUnstableSyncFn = function ( fn ) {
   return function () {
-    if ( Math.random () <= .9 ) {
+    if ( Math.random () <= .75 ) {
       const code = _.shuffle ([ 'EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM' ])[0];
       throw createErr ( code );
     }

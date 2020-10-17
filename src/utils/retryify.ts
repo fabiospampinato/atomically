@@ -2,11 +2,9 @@
 /* IMPORT */
 
 import {Exception, FN} from '../types';
+import RetryfyQueue from './retryify_queue';
 
 /* RETRYIFY */
-
-//TODO: Maybe publish this as a standalone package
-//TODO: Implement a more sophisticaed, less intensive, retry strategy
 
 const retryifyAsync = <T extends FN> ( fn: T, isRetriableError: FN<[Exception], boolean | void> ): FN<[number], T> => {
 
@@ -14,13 +12,32 @@ const retryifyAsync = <T extends FN> ( fn: T, isRetriableError: FN<[Exception], 
 
     return function attempt () {
 
-      return fn.apply ( undefined, arguments ).catch ( error => {
+      return RetryfyQueue.schedule ( attempt ).then ( cleanup => {
 
-        if ( Date.now () > timestamp ) throw error;
+        return fn.apply ( undefined, arguments ).then ( result => {
 
-        if ( isRetriableError ( error ) ) return attempt.apply ( undefined, arguments );
+          cleanup ();
 
-        throw error;
+          return result;
+
+        }, error => {
+
+          cleanup ();
+
+          if ( Date.now () >= timestamp ) throw error;
+
+          if ( isRetriableError ( error ) ) {
+
+            const delay = Math.round ( 100 + ( 400 * Math.random () ) ),
+                  delayPromise = new Promise ( resolve => setTimeout ( resolve, delay ) );
+
+            return delayPromise.then ( () => attempt.apply ( undefined, arguments ) );
+
+          }
+
+          throw error;
+
+        });
 
       });
 
