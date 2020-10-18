@@ -12,7 +12,7 @@ const retryifyAsync = <T extends FN> ( fn: T, isRetriableError: FN<[Exception], 
 
     return function attempt () {
 
-      return RetryfyQueue.schedule ( attempt ).then ( cleanup => {
+      return RetryfyQueue.schedule ().then ( cleanup => {
 
         return fn.apply ( undefined, arguments ).then ( result => {
 
