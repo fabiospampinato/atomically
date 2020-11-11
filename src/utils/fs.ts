@@ -25,6 +25,7 @@ const FS = {
   openRetry: retryifyAsync ( promisify ( fs.open ), Handlers.isRetriableError ),
   readFileRetry: retryifyAsync ( promisify ( fs.readFile ), Handlers.isRetriableError ),
   renameRetry: retryifyAsync ( promisify ( fs.rename ), Handlers.isRetriableError ),
+  statRetry: retryifyAsync ( promisify ( fs.stat ), Handlers.isRetriableError ),
   writeRetry: retryifyAsync ( promisify ( fs.write ), Handlers.isRetriableError ),
 
   chmodSyncAttempt: attemptifySync ( fs.chmodSync, Handlers.onChangeError ),
@@ -40,6 +41,7 @@ const FS = {
   openSyncRetry: retryifySync ( fs.openSync, Handlers.isRetriableError ),
   readFileSyncRetry: retryifySync ( fs.readFileSync, Handlers.isRetriableError ),
   renameSyncRetry: retryifySync ( fs.renameSync, Handlers.isRetriableError ),
+  statSyncRetry: retryifySync ( fs.statSync, Handlers.isRetriableError ),
   writeSyncRetry: retryifySync ( fs.writeSync, Handlers.isRetriableError )
 
 };
