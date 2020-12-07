@@ -45,7 +45,7 @@ const Scheduler = {
 
       queue.push ( resolve );
 
-      if ( queue.length > 1 ) return;
+      if ( queue.length > 1 && queue.length < 100 ) return;
 
       resolve ( () => Scheduler.next ( id ) );
 
