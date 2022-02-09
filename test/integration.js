@@ -74,7 +74,7 @@ function currentUser () {
 test('setup', t => {
   rimraf.sync(workdir)
   fs.mkdirSync(workdir, {recursive: true})
-  t.done()
+  t.end()
 })
 
 test('writes simple file (async)', t => {
@@ -132,7 +132,7 @@ test('runs chown on given file (async)', t => {
   didWriteFileAtomic(t, { uid: 42, gid: 43 }, file, '42', { chown: { uid: 42, gid: 43 } }, err => {
     t.ifError(err, 'no error')
     t.is(readFile(file), '42', 'content ok')
-    t.done()
+    t.end()
   })
 })
 
@@ -142,7 +142,7 @@ test('writes simple file with no chown (async)', t => {
   didWriteFileAtomic(t, {}, file, '42', { chown: false }, err => {
     t.ifError(err, 'no error')
     t.is(readFile(file), '42', 'content ok')
-    t.done()
+    t.end()
   })
 })
 
@@ -287,5 +287,5 @@ test('does not change chown by default (sync)', t => {
 
 test('cleanup', t => {
   rimraf.sync(workdir)
-  t.done()
+  t.end()
 })

@@ -9,8 +9,8 @@
     "clean": "rimraf dist",
     "compile": "tsc --skipLibCheck && tstei",
     "compile:watch": "tsc --skipLibCheck --watch",
-    "test": "tap --no-coverage-report",
-    "test:watch": "tap --no-coverage-report --watch",
+    "test": "tap --no-check-coverage --no-coverage-report",
+    "test:watch": "tap --no-check-coverage --no-coverage-report --watch",
     "prepublishOnly": "npm run clean && npm run compile && npm run test"
   },
   "bugs": {
@@ -43,7 +43,7 @@
     "promise-resolve-timeout": "^1.2.1",
     "require-inject": "^1.4.4",
     "rimraf": "^3.0.2",
-    "tap": "^14.10.7",
+    "tap": "^15.1.6",
     "typescript": "^3.5.3",
     "typescript-transform-export-interop": "^1.0.2",
     "write-file-atomic": "^3.0.3"
