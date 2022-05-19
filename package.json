@@ -1,29 +1,21 @@
 {
   "name": "atomically",
+  "repository": "github:fabiospampinato/atomically",
   "description": "Read and write files atomically and reliably.",
   "version": "1.7.0",
+  "type": "module",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "benchmark": "node ./tasks/benchmark.js",
-    "clean": "rimraf dist",
-    "compile": "tsc --skipLibCheck && tstei",
-    "compile:watch": "tsc --skipLibCheck --watch",
+    "benchmark": "tsex benchmark",
+    "benchmarkLwatch": "tsex benchmark --watch",
+    "clean": "tsex clean",
+    "compile": "tsex compile",
+    "compile:watch": "tsex compile --watch",
     "test": "tap --no-check-coverage --no-coverage-report",
     "test:watch": "tap --no-check-coverage --no-coverage-report --watch",
     "prepublishOnly": "npm run clean && npm run compile && npm run test"
-  },
-  "bugs": {
-    "url": "https://github.com/fabiospampinato/atomically/issues"
-  },
-  "license": "MIT",
-  "author": {
-    "name": "Fabio Spampinato",
-    "email": "spampinabio@gmail.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/fabiospampinato/atomically.git"
   },
   "keywords": [
     "atomic",
@@ -32,20 +24,19 @@
     "file",
     "reliable"
   ],
-  "engines": {
-    "node": ">=10.12.0"
+  "dependencies": {
+    "is": "npm:@fabiospampinato/is@^2.0.0",
+    "stubborn-fs": "^1.0.0",
+    "when-exit": "^2.0.0"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^12.7.2",
-    "lodash": "^4.17.19",
+    "@types/node": "^17.0.35",
+    "lodash": "^4.17.21",
     "mkdirp": "^1.0.4",
-    "promise-resolve-timeout": "^1.2.1",
     "require-inject": "^1.4.4",
-    "rimraf": "^3.0.2",
     "tap": "^15.1.6",
-    "typescript": "^3.5.3",
-    "typescript-transform-export-interop": "^1.0.2",
-    "write-file-atomic": "^3.0.3"
+    "tsex": "^1.1.2",
+    "typescript": "^4.6.4",
+    "write-file-atomic": "^4.0.1"
   }
 }

@@ -1,37 +1,37 @@
 
-/* TYPES */
+/* MAIN */
 
-type Callback = ( error: Exception | void ) => any;
+type Callback = ( error: Exception | void ) => void;
 
-type Data = Buffer | string | undefined;
+type Data = Uint8Array | string | undefined;
 
 type Disposer = () => void;
 
-type Exception = NodeJS.ErrnoException;
+type Encoding = 'ascii' | 'base64' | 'binary' | 'hex' | 'latin1' | 'utf8' | 'utf-8' | 'utf16le' | 'ucs2' | 'ucs-2';
 
-type FN<Arguments extends any[] = any[], Return = any> = ( ...args: Arguments ) => Return;
+type Exception = NodeJS.ErrnoException;
 
 type Path = string;
 
 type ReadOptions = {
-  encoding?: string | null,
+  encoding?: Encoding | null,
   mode?: string | number | false,
   timeout?: number
 };
 
 type WriteOptions = {
   chown?: { gid: number, uid: number } | false,
-  encoding?: string | null,
+  encoding?: Encoding | null,
   fsync?: boolean,
   fsyncWait?: boolean,
   mode?: string | number | false,
   schedule?: ( filePath: string ) => Promise<Disposer>,
   timeout?: number,
   tmpCreate?: ( filePath: string ) => string,
-  tmpCreated?: ( filePath: string ) => any,
+  tmpCreated?: ( filePath: string ) => void,
   tmpPurge?: boolean
 };
 
 /* EXPORT */
 
-export {Callback, Data, Disposer, Exception, FN, Path, ReadOptions, WriteOptions};
+export type {Callback, Data, Disposer, Encoding, Exception, Path, ReadOptions, WriteOptions};

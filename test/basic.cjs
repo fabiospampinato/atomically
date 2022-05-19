@@ -1,5 +1,3 @@
-'use strict'
-
 process.setMaxListeners(1000000);
 
 const _ = require('lodash')
@@ -147,7 +145,7 @@ const fsMockUnstable = Object.assign ( {}, fsMock, {
   renameSync: makeUnstableSyncFn ( _.noop )
 });
 
-const {writeFile: writeFileAtomic, writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMock });
+const {writeFile: writeFileAtomic, writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMock });
 
 test('async tests', t => {
   t.plan(2)
@@ -242,7 +240,7 @@ test('async tests', t => {
       t.notOk(err)
     })
     const longPath = path.join(os.tmpdir(),'.012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789.txt');
-    const {writeFile: writeFileAtomicNative} = requireInject('../dist', { fs });
+    const {writeFile: writeFileAtomicNative} = requireInject('../dist/index.js', { fs });
     writeFileAtomicNative(longPath,'test', err => {
       t.notOk(err)
     })
@@ -258,7 +256,7 @@ test('async tests', t => {
     t.teardown(() => {
       process.getuid = getuid
     })
-    const {writeFile: writeFileAtomic} = requireInject('../dist', { fs: fsMock });
+    const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
     t.plan(2)
     writeFileAtomic('einval', 'test', { chown: { uid: 100, gid: 100 } }, err => {
       t.match(err, { code: 'EINVAL' })
@@ -271,7 +269,7 @@ test('async tests', t => {
 
 test('unstable async tests', t => {
   t.plan(2);
-  const {writeFile: writeFileAtomic} = requireInject('../dist', { fs: fsMockUnstable });
+  const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMockUnstable });
   writeFileAtomic('good', 'test', err => {
     t.notOk(err, 'No errors occur when retryable errors are thrown')
   })
@@ -395,7 +393,7 @@ test('sync tests', t => {
     const path0 = path.join(os.tmpdir(),'atomically-test-0');
     const tmpPath0 = path0 + '.temp';
     noexception(t, 'temp files are purged on success', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs });
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs });
       writeFileAtomicSync(path0, 'test', {tmpCreate: () => tmpPath0})
     })
     t.is(true,fs.existsSync(path0));
@@ -403,7 +401,7 @@ test('sync tests', t => {
     const path1 = path.join(os.tmpdir(),'atomically-test-norename-1');
     const tmpPath1 = path1 + '.temp';
     throws(t, 'ENORENAME', 'temp files are purged on error', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
       writeFileAtomicSync(path1, 'test', {tmpCreate: () => tmpPath1})
     })
     t.is(false,fs.existsSync(path1));
@@ -411,19 +409,19 @@ test('sync tests', t => {
     const path2 = path.join(os.tmpdir(),'atomically-test-norename-2');
     const tmpPath2 = path2 + '.temp';
     throws(t, 'ENORENAME', 'temp files can also not be purged on error', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
       writeFileAtomicSync(path2, 'test', {tmpCreate: () => tmpPath2,tmpPurge: false})
     })
     t.is(false,fs.existsSync(path2));
     t.is(true,fs.existsSync(tmpPath2));
     const longPath = path.join(os.tmpdir(),'.012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789.txt');
     noexception(t, 'temp files are truncated', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs });
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs });
       writeFileAtomicSync(longPath, 'test')
     })
     const pathMissingFolders = path.join(os.tmpdir(),String(Math.random()),String(Math.random()),String(Math.random()),'foo.txt');
     noexception(t, 'parent folders are created', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs });
+      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs });
       writeFileAtomicSync(pathMissingFolders, 'test')
     })
   })
@@ -434,7 +432,7 @@ test('sync tests', t => {
     t.teardown(() => {
       process.getuid = getuid
     })
-    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMock });
+    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMock });
     t.plan(2)
     throws(t, 'EINVAL', 'Chown error as root user', () => {
       writeFileAtomicSync('einval', 'test', { chown: { uid: 100, gid: 100 } })
@@ -460,12 +458,12 @@ test('unstable sync tests', t => {
   }
 
   noexception(t, 'No errors occur when retryable errors are thrown', () => {
-    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMockUnstable });
+    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMockUnstable });
     writeFileAtomicSync('good', 'test')
   })
 
   throws(t, 'retrying can be disabled', () => {
-    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist', { fs: fsMockUnstable });
+    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMockUnstable });
     writeFileAtomicSync('good', 'test', { timeout: 0 })
   })
 });

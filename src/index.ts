@@ -1,43 +1,45 @@
 
 /* IMPORT */
 
-import * as path from 'path';
-import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './consts';
-import FS from './utils/fs';
-import Lang from './utils/lang';
+import {isString, isUndefined, isFunction} from 'is';
+import path from 'node:path';
+import fs from 'stubborn-fs';
+import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './constants';
 import Scheduler from './utils/scheduler';
 import Temp from './utils/temp';
-import {Callback, Data, Disposer, Path, ReadOptions, WriteOptions} from './types';
+import type {Callback, Data, Disposer, Encoding, Path, ReadOptions, WriteOptions} from './types';
 
-/* ATOMICALLY */
+/* MAIN */
 
-function readFile ( filePath: Path, options: string | ReadOptions & { encoding: string } ): Promise<string>;
+function readFile ( filePath: Path, options: Encoding | ReadOptions & { encoding: string } ): Promise<string>;
 function readFile ( filePath: Path, options?: ReadOptions ): Promise<Buffer>;
-function readFile ( filePath: Path, options: string | ReadOptions = DEFAULT_READ_OPTIONS ): Promise<Buffer | string> {
+function readFile ( filePath: Path, options: Encoding | ReadOptions = DEFAULT_READ_OPTIONS ): Promise<Buffer | string> {
 
-  if ( Lang.isString ( options ) ) return readFile ( filePath, { encoding: options } );
+  if ( isString ( options ) ) return readFile ( filePath, { encoding: options } );
 
   const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC );
 
-  return FS.readFileRetry ( timeout )( filePath, options );
+  return fs.retry.readFile ( timeout )( filePath, options );
 
 };
 
-function readFileSync ( filePath: Path, options: string | ReadOptions & { encoding: string } ): string;
+function readFileSync ( filePath: Path, options: Encoding | ReadOptions & { encoding: string } ): string;
 function readFileSync ( filePath: Path, options?: ReadOptions ): Buffer;
-function readFileSync ( filePath: Path, options: string | ReadOptions = DEFAULT_READ_OPTIONS ): Buffer | string {
+function readFileSync ( filePath: Path, options: Encoding | ReadOptions = DEFAULT_READ_OPTIONS ): Buffer | string {
 
-  if ( Lang.isString ( options ) ) return readFileSync ( filePath, { encoding: options } );
+  if ( isString ( options ) ) return readFileSync ( filePath, { encoding: options } );
 
   const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_SYNC );
 
-  return FS.readFileSyncRetry ( timeout )( filePath, options );
+  return fs.retry.readFileSync ( timeout )( filePath, options );
 
 };
 
-const writeFile = ( filePath: Path, data: Data, options?: string | WriteOptions | Callback, callback?: Callback ): Promise<void> => {
+function writeFile ( filePath: Path, data: Data, callback?: Callback ): Promise<void>;
+function writeFile ( filePath: Path, data: Data, options?: Encoding | WriteOptions, callback?: Callback ): Promise<void>;
+function writeFile ( filePath: Path, data: Data, options?: Encoding | WriteOptions | Callback, callback?: Callback ): Promise<void> {
 
-  if ( Lang.isFunction ( options ) ) return writeFile ( filePath, data, DEFAULT_WRITE_OPTIONS, options );
+  if ( isFunction ( options ) ) return writeFile ( filePath, data, DEFAULT_WRITE_OPTIONS, options );
 
   const promise = writeFileAsync ( filePath, data, options );
 
@@ -47,17 +49,17 @@ const writeFile = ( filePath: Path, data: Data, options?: string | WriteOptions 
 
 };
 
-const writeFileAsync = async ( filePath: Path, data: Data, options: string | WriteOptions = DEFAULT_WRITE_OPTIONS ): Promise<void> => {
+async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): Promise<void> {
 
-  if ( Lang.isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
+  if ( isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
   const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC );
 
-  let schedulerCustomDisposer: Disposer | null = null,
-      schedulerDisposer: Disposer | null = null,
-      tempDisposer: Disposer | null = null,
-      tempPath: string | null = null,
-      fd: number | null = null;
+  let schedulerCustomDisposer: Disposer | null = null;
+  let schedulerDisposer: Disposer | null = null;
+  let tempDisposer: Disposer | null = null;
+  let tempPath: string | null = null;
+  let fd: number | null = null;
 
   try {
 
@@ -65,16 +67,16 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: string | Wri
 
     schedulerDisposer = await Scheduler.schedule ( filePath );
 
-    filePath = await FS.realpathAttempt ( filePath ) || filePath;
+    filePath = await fs.attempt.realpath ( filePath ) || filePath;
 
     [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create, !( options.tmpPurge === false ) );
 
-    const useStatChown = IS_POSIX && Lang.isUndefined ( options.chown ),
-          useStatMode = Lang.isUndefined ( options.mode );
+    const useStatChown = IS_POSIX && isUndefined ( options.chown );
+    const useStatMode = isUndefined ( options.mode );
 
     if ( useStatChown || useStatMode ) {
 
-      const stat = await FS.statAttempt ( filePath );
+      const stat = await fs.attempt.stat ( filePath );
 
       if ( stat ) {
 
@@ -90,22 +92,22 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: string | Wri
 
     const parentPath = path.dirname ( filePath );
 
-    await FS.mkdirAttempt ( parentPath, {
+    await fs.attempt.mkdir ( parentPath, {
       mode: DEFAULT_FOLDER_MODE,
       recursive: true
     });
 
-    fd = await FS.openRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
+    fd = await fs.retry.open ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
     if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
-    if ( Lang.isString ( data ) ) {
+    if ( isString ( data ) ) {
 
-      await FS.writeRetry ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      await fs.retry.write ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
 
-    } else if ( !Lang.isUndefined ( data ) ) {
+    } else if ( !isUndefined ( data ) ) {
 
-      await FS.writeRetry ( timeout )( fd, data, 0, data.length, 0 );
+      await fs.retry.write ( timeout )( fd, data, 0, data.length, 0 );
 
     }
 
@@ -113,33 +115,33 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: string | Wri
 
       if ( options.fsyncWait !== false ) {
 
-        await FS.fsyncRetry ( timeout )( fd );
+        await fs.retry.fsync ( timeout )( fd );
 
       } else {
 
-        FS.fsyncAttempt ( fd );
+        fs.attempt.fsync ( fd );
 
       }
 
     }
 
-    await FS.closeRetry ( timeout )( fd );
+    await fs.retry.close ( timeout )( fd );
 
     fd = null;
 
-    if ( options.chown ) await FS.chownAttempt ( tempPath, options.chown.uid, options.chown.gid );
+    if ( options.chown ) await fs.attempt.chown ( tempPath, options.chown.uid, options.chown.gid );
 
-    if ( options.mode ) await FS.chmodAttempt ( tempPath, options.mode );
+    if ( options.mode ) await fs.attempt.chmod ( tempPath, options.mode );
 
     try {
 
-      await FS.renameRetry ( timeout )( tempPath, filePath );
+      await fs.retry.rename ( timeout )( tempPath, filePath );
 
-    } catch ( error ) {
+    } catch ( error: any ) {
 
       if ( error.code !== 'ENAMETOOLONG' ) throw error;
 
-      await FS.renameRetry ( timeout )( tempPath, Temp.truncate ( filePath ) );
+      await fs.retry.rename ( timeout )( tempPath, Temp.truncate ( filePath ) );
 
     }
 
@@ -149,7 +151,7 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: string | Wri
 
   } finally {
 
-    if ( fd ) await FS.closeAttempt ( fd );
+    if ( fd ) await fs.attempt.close ( fd );
 
     if ( tempPath ) Temp.purge ( tempPath );
 
@@ -161,28 +163,28 @@ const writeFileAsync = async ( filePath: Path, data: Data, options: string | Wri
 
 };
 
-const writeFileSync = ( filePath: Path, data: Data, options: string | WriteOptions = DEFAULT_WRITE_OPTIONS ): void => {
+const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): void => {
 
-  if ( Lang.isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
+  if ( isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
 
   const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_SYNC );
 
-  let tempDisposer: Disposer | null = null,
-      tempPath: string | null = null,
-      fd: number | null = null;
+  let tempDisposer: Disposer | null = null;
+  let tempPath: string | null = null;
+  let fd: number | null = null;
 
   try {
 
-    filePath = FS.realpathSyncAttempt ( filePath ) || filePath;
+    filePath = fs.attempt.realpathSync ( filePath ) || filePath;
 
     [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create, !( options.tmpPurge === false ) );
 
-    const useStatChown = IS_POSIX && Lang.isUndefined ( options.chown ),
-          useStatMode = Lang.isUndefined ( options.mode );
+    const useStatChown = IS_POSIX && isUndefined ( options.chown );
+    const useStatMode = isUndefined ( options.mode );
 
     if ( useStatChown || useStatMode ) {
 
-      const stat = FS.statSyncAttempt ( filePath );
+      const stat = fs.attempt.statSync ( filePath );
 
       if ( stat ) {
 
@@ -198,22 +200,22 @@ const writeFileSync = ( filePath: Path, data: Data, options: string | WriteOptio
 
     const parentPath = path.dirname ( filePath );
 
-    FS.mkdirSyncAttempt ( parentPath, {
+    fs.attempt.mkdirSync ( parentPath, {
       mode: DEFAULT_FOLDER_MODE,
       recursive: true
     });
 
-    fd = FS.openSyncRetry ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
+    fd = fs.retry.openSync ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
     if ( options.tmpCreated ) options.tmpCreated ( tempPath );
 
-    if ( Lang.isString ( data ) ) {
+    if ( isString ( data ) ) {
 
-      FS.writeSyncRetry ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      fs.retry.writeSync ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
 
-    } else if ( !Lang.isUndefined ( data ) ) {
+    } else if ( !isUndefined ( data ) ) {
 
-      FS.writeSyncRetry ( timeout )( fd, data, 0, data.length, 0 );
+      fs.retry.writeSync ( timeout )( fd, data, 0, data.length, 0 );
 
     }
 
@@ -221,33 +223,33 @@ const writeFileSync = ( filePath: Path, data: Data, options: string | WriteOptio
 
       if ( options.fsyncWait !== false ) {
 
-        FS.fsyncSyncRetry ( timeout )( fd );
+        fs.retry.fsyncSync ( timeout )( fd );
 
       } else {
 
-        FS.fsyncAttempt ( fd );
+        fs.attempt.fsync ( fd );
 
       }
 
     }
 
-    FS.closeSyncRetry ( timeout )( fd );
+    fs.retry.closeSync ( timeout )( fd );
 
     fd = null;
 
-    if ( options.chown ) FS.chownSyncAttempt ( tempPath, options.chown.uid, options.chown.gid );
+    if ( options.chown ) fs.attempt.chownSync ( tempPath, options.chown.uid, options.chown.gid );
 
-    if ( options.mode ) FS.chmodSyncAttempt ( tempPath, options.mode );
+    if ( options.mode ) fs.attempt.chmodSync ( tempPath, options.mode );
 
     try {
 
-      FS.renameSyncRetry ( timeout )( tempPath, filePath );
+      fs.retry.renameSync ( timeout )( tempPath, filePath );
 
-    } catch ( error ) {
+    } catch ( error: any ) {
 
       if ( error.code !== 'ENAMETOOLONG' ) throw error;
 
-      FS.renameSyncRetry ( timeout )( tempPath, Temp.truncate ( filePath ) );
+      fs.retry.renameSync ( timeout )( tempPath, Temp.truncate ( filePath ) );
 
     }
 
@@ -257,7 +259,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: string | WriteOptio
 
   } finally {
 
-    if ( fd ) FS.closeSyncAttempt ( fd );
+    if ( fd ) fs.attempt.closeSync ( fd );
 
     if ( tempPath ) Temp.purge ( tempPath );
 

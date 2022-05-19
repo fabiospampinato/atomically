@@ -1,18 +1,18 @@
 
 /* IMPORT */
 
-const fs = require ( 'fs' ),
-      os = require ( 'os' ),
-      path = require ( 'path' ),
-      delay = require ( 'promise-resolve-timeout' ),
-      writeFileAtomic = require ( 'write-file-atomic' ),
-      {writeFile, writeFileSync} = require ( '../dist' );
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {setTimeout as delay} from 'node:timers/promises';
+import writeFileAtomic from 'write-file-atomic';
+import {writeFile, writeFileSync} from '../dist/index.js';
 
-/* BENCHMARK */
+/* MAIN */
 
-const TEMP = os.tmpdir (),
-      DST = i => path.join ( TEMP, `atomically-temp-${i}.txt` ),
-      ITERATIONS = 250;
+const TEMP = os.tmpdir ();
+const DST = i => path.join ( TEMP, `atomically-temp-${i}.txt` );
+const ITERATIONS = 250;
 
 const runSingleAsync = async ( name, fn, buffer, options ) => {
   console.time ( name );

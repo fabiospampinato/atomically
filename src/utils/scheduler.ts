@@ -1,17 +1,19 @@
 
 /* IMPORT */
 
-import {Disposer} from '../types';
+import type {Disposer} from '../types';
 
-/* VARIABLES */
+/* HELPERS */
 
 const Queues: Record<string, Function[] | undefined> = {};
 
-/* SCHEDULER */
+/* MAIN */
 
 //TODO: Maybe publish this as a standalone package
 
 const Scheduler = {
+
+  /* API */
 
   next: ( id: string ): void => {
 

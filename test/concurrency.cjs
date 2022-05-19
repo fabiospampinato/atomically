@@ -1,5 +1,3 @@
-'use strict'
-
 process.setMaxListeners(1000000);
 
 const fs = require('fs')
@@ -84,7 +82,7 @@ const fsMock = Object.assign ( {}, fs, {
   }
 })
 
-const {writeFile: writeFileAtomic} = requireInject('../dist', { fs: fsMock });
+const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
 
 // preserve original functions
 const oldRealPath = fsMock.realpath
@@ -104,7 +102,7 @@ test('ensure writes to the same file are serial', t => {
     fileInUse = false
     oldRename(...args)
   }
-  const {writeFile: writeFileAtomic} = requireInject('../dist', { fs: fsMock });
+  const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
   for (let i = 0; i < ops; i++) {
     writeFileAtomic('test', 'test', err => {
       if (err) t.fail(err)
@@ -134,7 +132,7 @@ test('allow write to multiple files in parallel, but same file writes are serial
     filesInUse.splice(filesInUse.indexOf(filename), 1)
     oldRename(filename, ...args)
   }
-  const {writeFile: writeFileAtomic} = requireInject('../dist', { fs: fsMock });
+  const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
   t.plan(ops * 2 * 2 + 1)
   let opCount = 0
   for (let i = 0; i < ops; i++) {

@@ -1,5 +1,3 @@
-'use strict'
-
 process.setMaxListeners(1000000);
 
 const fs = require('fs')
@@ -25,7 +23,7 @@ function didWriteFileAtomic (t, expected, filename, data, options, callback) {
   }
   if (!options) options = {}
   const actual = {}
-  const {writeFile: writeFileAtomic} = requireInject('../dist', {
+  const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', {
     fs: Object.assign({}, fs, {
       chown (filename, uid, gid, cb) {
         actual.uid = uid
@@ -48,7 +46,7 @@ function didWriteFileAtomic (t, expected, filename, data, options, callback) {
 
 function didWriteFileAtomicSync (t, expected, filename, data, options) {
   const actual = {}
-  const {writeFileSync} = requireInject('../dist', {
+  const {writeFileSync} = requireInject('../dist/index.js', {
     fs: Object.assign({}, fs, {
       chownSync (filename, uid, gid) {
         actual.uid = uid

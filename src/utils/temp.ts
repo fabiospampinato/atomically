@@ -1,26 +1,31 @@
 
 /* IMPORT */
 
-import * as path from 'path';
-import {LIMIT_BASENAME_LENGTH} from '../consts';
-import {Disposer} from '../types';
-import FS from './fs';
+import path from 'node:path';
+import fs from 'stubborn-fs';
+import whenExit from 'when-exit';
+import {LIMIT_BASENAME_LENGTH} from '../constants';
+import type {Disposer} from '../types';
 
-/* TEMP */
+/* MAIN */
 
 //TODO: Maybe publish this as a standalone package
 
 const Temp = {
 
+  /* VARIABLES */
+
   store: <Record<string, boolean>> {}, // filePath => purge
+
+  /* API */
 
   create: ( filePath: string ): string => {
 
-    const randomness = `000000${Math.floor ( Math.random () * 16777215 ).toString ( 16 )}`.slice ( -6 ), // 6 random-enough hex characters
-          timestamp = Date.now ().toString ().slice ( -10 ), // 10 precise timestamp digits
-          prefix = 'tmp-',
-          suffix = `.${prefix}${timestamp}${randomness}`,
-          tempPath = `${filePath}${suffix}`;
+    const randomness = `000000${Math.floor ( Math.random () * 16777215 ).toString ( 16 )}`.slice ( -6 ); // 6 random-enough hex characters
+    const timestamp = Date.now ().toString ().slice ( -10 ); // 10 precise timestamp digits
+    const prefix = 'tmp-';
+    const suffix = `.${prefix}${timestamp}${randomness}`;
+    const tempPath = `${filePath}${suffix}`;
 
     return tempPath;
 
@@ -46,7 +51,7 @@ const Temp = {
 
     delete Temp.store[filePath];
 
-    FS.unlinkAttempt ( filePath );
+    fs.attempt.unlink ( filePath );
 
   },
 
@@ -56,7 +61,7 @@ const Temp = {
 
     delete Temp.store[filePath];
 
-    FS.unlinkSyncAttempt ( filePath );
+    fs.attempt.unlinkSync ( filePath );
 
   },
 
@@ -90,7 +95,7 @@ const Temp = {
 
 /* INIT */
 
-process.on ( 'exit', Temp.purgeSyncAll ); // Ensuring purgeable temp files are purged on exit
+whenExit ( Temp.purgeSyncAll ); // Ensuring purgeable temp files are purged on exit
 
 /* EXPORT */
 

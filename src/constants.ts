@@ -1,5 +1,5 @@
 
-/* CONSTS */
+/* MAIN */
 
 const DEFAULT_ENCODING = 'utf8';
 

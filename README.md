@@ -8,7 +8,7 @@ Read and write files atomically and reliably.
   - This library is a rewrite of [`write-file-atomic`](https://github.com/npm/write-file-atomic), with some important enhancements on top, you can largely use this as a drop-in replacement.
   - This library is written in TypeScript, so types aren't an afterthought but come with library.
   - This library is slightly faster than [`write-file-atomic`](https://github.com/npm/write-file-atomic), and it can be 10x faster, while being essentially just as safe, by using the `fsyncWait` option.
-  - This library has 0 dependencies, so there's less code to vet and the entire thing is roughly 20% smaller than [`write-file-atomic`](https://github.com/npm/write-file-atomic).
+  - This library has 0 third-party dependencies, so there's less code to vet and the entire thing is roughly 20% smaller than [`write-file-atomic`](https://github.com/npm/write-file-atomic).
   - This library tries harder to write files on disk than [`write-file-atomic`](https://github.com/npm/write-file-atomic) does, by default retrying some failed operations and handling some more errors.
 - Reliability:
   - Reads are retried, when appropriate, until they succeed or the timeout is reached.
