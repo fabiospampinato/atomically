@@ -2,7 +2,7 @@
   "name": "atomically",
   "repository": "github:fabiospampinato/atomically",
   "description": "Read and write files atomically and reliably.",
-  "version": "1.7.0",
+  "version": "2.0.0",
   "type": "module",
   "main": "dist/index.js",
   "exports": "./dist/index.js",
