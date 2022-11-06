@@ -58,7 +58,6 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
   let schedulerCustomDisposer: Disposer | null = null;
   let schedulerDisposer: Disposer | null = null;
   let tempDisposer: Disposer | null = null;
-  let existentPath: boolean = false;
   let tempPath: string | null = null;
   let fd: number | null = null;
 
@@ -69,8 +68,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
     schedulerDisposer = await Scheduler.schedule ( filePath );
 
     const filePathReal = await fs.attempt.realpath ( filePath );
-
-    existentPath ||= !!filePathReal;
+    const filePathExists = !!filePathReal;
 
     filePath = filePathReal || filePath;
 
@@ -79,11 +77,9 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
     const useStatChown = IS_POSIX && isUndefined ( options.chown );
     const useStatMode = isUndefined ( options.mode );
 
-    if ( useStatChown || useStatMode ) {
+    if ( filePathExists && ( useStatChown || useStatMode ) ) {
 
       const stats = await fs.attempt.stat ( filePath );
-
-      existentPath ||= !!stats;
 
       if ( stats ) {
 
@@ -97,7 +93,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     }
 
-    if ( !existentPath )  {
+    if ( !filePathExists )  {
 
       const parentPath = path.dirname ( filePath );
 
@@ -183,15 +179,13 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
   const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_SYNC ) || -1 );
 
   let tempDisposer: Disposer | null = null;
-  let existentPath: boolean = false;
   let tempPath: string | null = null;
   let fd: number | null = null;
 
   try {
 
     const filePathReal = fs.attempt.realpathSync ( filePath );
-
-    existentPath ||= !!filePathReal;
+    const filePathExists = !!filePathReal;
 
     filePath = filePathReal || filePath;
 
@@ -200,11 +194,9 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
     const useStatChown = IS_POSIX && isUndefined ( options.chown );
     const useStatMode = isUndefined ( options.mode );
 
-    if ( useStatChown || useStatMode ) {
+    if ( filePathExists && ( useStatChown || useStatMode ) ) {
 
       const stats = fs.attempt.statSync ( filePath );
-
-      existentPath ||= !!stats;
 
       if ( stats ) {
 
@@ -218,7 +210,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
     }
 
-    if ( !existentPath ) {
+    if ( !filePathExists ) {
 
       const parentPath = path.dirname ( filePath );
 
