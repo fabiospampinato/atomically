@@ -25,7 +25,6 @@
     "reliable"
   ],
   "dependencies": {
-    "is": "npm:@fabiospampinato/is@^2.0.0",
     "stubborn-fs": "^1.0.0",
     "when-exit": "^2.0.0"
   },

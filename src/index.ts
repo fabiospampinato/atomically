@@ -1,10 +1,10 @@
 
 /* IMPORT */
 
-import {isString, isUndefined, isFunction} from 'is';
 import path from 'node:path';
 import fs from 'stubborn-fs';
 import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './constants';
+import {isException, isFunction, isString, isUndefined} from './utils/lang';
 import Scheduler from './utils/scheduler';
 import Temp from './utils/temp';
 import type {Callback, Data, Disposer, Encoding, Path, ReadOptions, WriteOptions} from './types';
@@ -21,7 +21,7 @@ function readFile ( filePath: Path, options: Encoding | ReadOptions = DEFAULT_RE
 
   return fs.retry.readFile ( timeout )( filePath, options );
 
-};
+}
 
 function readFileSync ( filePath: Path, options: Encoding | ReadOptions & { encoding: string } ): string;
 function readFileSync ( filePath: Path, options?: ReadOptions ): Buffer;
@@ -33,7 +33,7 @@ function readFileSync ( filePath: Path, options: Encoding | ReadOptions = DEFAUL
 
   return fs.retry.readFileSync ( timeout )( filePath, options );
 
-};
+}
 
 function writeFile ( filePath: Path, data: Data, callback?: Callback ): Promise<void>;
 function writeFile ( filePath: Path, data: Data, options?: Encoding | WriteOptions, callback?: Callback ): Promise<void>;
@@ -47,7 +47,7 @@ function writeFile ( filePath: Path, data: Data, options?: Encoding | WriteOptio
 
   return promise;
 
-};
+}
 
 async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): Promise<void> {
 
@@ -137,7 +137,9 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
       await fs.retry.rename ( timeout )( tempPath, filePath );
 
-    } catch ( error: any ) {
+    } catch ( error: unknown ) {
+
+      if ( !isException ( error ) ) throw error;
 
       if ( error.code !== 'ENAMETOOLONG' ) throw error;
 
@@ -161,7 +163,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
   }
 
-};
+}
 
 const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): void => {
 
@@ -245,7 +247,9 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
       fs.retry.renameSync ( timeout )( tempPath, filePath );
 
-    } catch ( error: any ) {
+    } catch ( error: unknown ) {
+
+      if ( !isException ( error ) ) throw error;
 
       if ( error.code !== 'ENAMETOOLONG' ) throw error;
 
@@ -265,7 +269,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
   }
 
-};
+}
 
 /* EXPORT */
 
