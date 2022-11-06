@@ -37,3 +37,5 @@ bower_components
 node_modules
 package-lock.json
 dist
+atomically.cjs
+.nyc_output

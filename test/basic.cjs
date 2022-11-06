@@ -1,6 +1,5 @@
 process.setMaxListeners(1000000);
 
-const _ = require('lodash')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
@@ -115,7 +114,7 @@ const fsMock = Object.assign ( {}, fs, {
 const makeUnstableAsyncFn = function () {
   return function () {
     if ( Math.random () <= .75 ) {
-      const code = _.shuffle ([ 'EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM' ])[0];
+      const code = ['EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM'].sort ( () => Math.random () - .5 )[0];
       throw createErr ( code );
     }
     return arguments[arguments.length -1](null, arguments[0]);
@@ -125,7 +124,7 @@ const makeUnstableAsyncFn = function () {
 const makeUnstableSyncFn = function ( fn ) {
   return function () {
     if ( Math.random () <= .75 ) {
-      const code = _.shuffle ([ 'EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM' ])[0];
+      const code = ['EMFILE', 'ENFILE', 'EAGAIN', 'EBUSY', 'EACCESS', 'EPERM'].sort ( () => Math.random () - .5 )[0];
       throw createErr ( code );
     }
     return fn.apply(undefined, arguments)
@@ -138,14 +137,14 @@ const fsMockUnstable = Object.assign ( {}, fsMock, {
   fsync: makeUnstableAsyncFn (),
   close: makeUnstableAsyncFn (),
   rename: makeUnstableAsyncFn (),
-  openSync: makeUnstableSyncFn ( _.identity ),
-  writeSync: makeUnstableSyncFn ( _.noop ),
-  fsyncSync: makeUnstableSyncFn ( _.noop ),
-  closeSync: makeUnstableSyncFn ( _.noop ),
-  renameSync: makeUnstableSyncFn ( _.noop )
+  openSync: makeUnstableSyncFn ( x => x ),
+  writeSync: makeUnstableSyncFn ( () => {} ),
+  fsyncSync: makeUnstableSyncFn ( () => {} ),
+  closeSync: makeUnstableSyncFn ( () => {} ),
+  renameSync: makeUnstableSyncFn ( () => {} )
 });
 
-const {writeFile: writeFileAtomic, writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMock });
+const {writeFile: writeFileAtomic, writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs: fsMock });
 
 test('async tests', t => {
   t.plan(2)
@@ -174,34 +173,34 @@ test('async tests', t => {
       t.notOk(err)
     })
     writeFileAtomic('noopen', 'test', err => {
-      t.is(err && err.message, 'ENOOPEN', 'fs.open failures propagate')
+      t.equal(err.message, 'ENOOPEN', 'fs.open failures propagate')
     })
     writeFileAtomic('nowrite', 'test', err => {
-      t.is(err && err.message, 'ENOWRITE', 'fs.writewrite failures propagate')
+      t.equal(err.message, 'ENOWRITE', 'fs.writewrite failures propagate')
     })
     writeFileAtomic('nowrite', Buffer.from('test', 'utf8'), err => {
-      t.is(err && err.message, 'ENOWRITE', 'fs.writewrite failures propagate for buffers')
+      t.equal(err.message, 'ENOWRITE', 'fs.writewrite failures propagate for buffers')
     })
     writeFileAtomic('nochown', 'test', { chown: { uid: 100, gid: 100 } }, err => {
-      t.is(err && err.message, 'ENOCHOWN', 'Chown failures propagate')
+      t.equal(err.message, 'ENOCHOWN', 'Chown failures propagate')
     })
     writeFileAtomic('nochown', 'test', err => {
       t.notOk(err, 'No attempt to chown when no uid/gid passed in')
     })
     writeFileAtomic('nochmod', 'test', { mode: parseInt('741', 8) }, err => {
-      t.is(err && err.message, 'ENOCHMOD', 'Chmod failures propagate')
+      t.equal(err.message, 'ENOCHMOD', 'Chmod failures propagate')
     })
     writeFileAtomic('nofsyncopt', 'test', { fsync: false }, err => {
       t.notOk(err, 'fsync skipped if options.fsync is false')
     })
     writeFileAtomic('norename', 'test', err => {
-      t.is(err && err.message, 'ENORENAME', 'Rename errors propagate')
+      t.equal(err.message, 'ENORENAME', 'Rename errors propagate')
     })
     writeFileAtomic('norename nounlink', 'test', err => {
-      t.is(err && err.message, 'ENORENAME', 'Failure to unlink the temp file does not clobber the original error')
+      t.equal(err.message, 'ENORENAME', 'Failure to unlink the temp file does not clobber the original error')
     })
     writeFileAtomic('nofsync', 'test', err => {
-      t.is(err && err.message, 'ENOFSYNC', 'Fsync failures propagate')
+      t.equal(err.message, 'ENOFSYNC', 'Fsync failures propagate')
     })
     writeFileAtomic('enosys', 'test', err => {
       t.notOk(err, 'No errors on ENOSYS')
@@ -221,13 +220,13 @@ test('async tests', t => {
     const optionsImmutable = {};
     writeFileAtomic('statful', 'test', optionsImmutable, err => {
       t.notOk(err);
-      t.deepEquals(optionsImmutable, {});
+      t.same(optionsImmutable, {});
     });
     const schedule = filePath => {
-      t.is(filePath, 'good');
+      t.equal(filePath, 'good');
       return new Promise ( resolve => {
         resolve ( () => {
-          t.is(true,true);
+          t.equal(true,true);
         });
       });
     };
@@ -235,12 +234,12 @@ test('async tests', t => {
       t.notOk(err);
     });
     const tmpCreate = filePath => `.${filePath}.custom`;
-    const tmpCreated = filePath => t.is ( filePath, '.good.custom' );
+    const tmpCreated = filePath => t.equal(filePath, '.good.custom' );
     writeFileAtomic('good','test', {tmpCreate, tmpCreated}, err => {
       t.notOk(err)
     })
     const longPath = path.join(os.tmpdir(),'.012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789.txt');
-    const {writeFile: writeFileAtomicNative} = requireInject('../dist/index.js', { fs });
+    const {writeFile: writeFileAtomicNative} = requireInject('./atomically.cjs', { fs });
     writeFileAtomicNative(longPath,'test', err => {
       t.notOk(err)
     })
@@ -256,7 +255,7 @@ test('async tests', t => {
     t.teardown(() => {
       process.getuid = getuid
     })
-    const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
+    const {writeFile: writeFileAtomic} = requireInject('./atomically.cjs', { fs: fsMock });
     t.plan(2)
     writeFileAtomic('einval', 'test', { chown: { uid: 100, gid: 100 } }, err => {
       t.match(err, { code: 'EINVAL' })
@@ -269,12 +268,12 @@ test('async tests', t => {
 
 test('unstable async tests', t => {
   t.plan(2);
-  const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMockUnstable });
+  const {writeFile: writeFileAtomic} = requireInject('./atomically.cjs', { fs: fsMockUnstable });
   writeFileAtomic('good', 'test', err => {
     t.notOk(err, 'No errors occur when retryable errors are thrown')
   })
   writeFileAtomic('good', 'test', { timeout: 0 }, err => {
-    t.is(!!err.code, true, 'Retrying can be disabled')
+    t.equal(!!err.code, true, 'Retrying can be disabled')
   })
 });
 
@@ -291,12 +290,12 @@ test('sync tests', t => {
   const throws = function (t, shouldthrow, msg, todo) {
     let err
     try { todo() } catch (e) { err = e }
-    t.is(shouldthrow, err && err.message, msg)
+    t.equal(shouldthrow, err.message, msg)
   }
   const noexception = function (t, msg, todo) {
     let err
     try { todo() } catch (e) { err = e }
-    t.ifError(err, msg)
+    t.error(err, msg)
   }
   let tmpfile
 
@@ -332,7 +331,7 @@ test('sync tests', t => {
         }
       })
     })
-    t.is(tmpfile, undefined, 'tmpCreated not called for open failure')
+    t.equal(tmpfile, undefined, 'tmpCreated not called for open failure')
 
     throws(t, 'ENOWRITE', 'fs.writeSync failures propagate', () => {
       writeFileAtomicSync('nowrite', 'test', {
@@ -384,44 +383,44 @@ test('sync tests', t => {
     noexception(t, 'options are immutable', () => {
       writeFileAtomicSync('statful', 'test', optionsImmutable)
     })
-    t.deepEquals(optionsImmutable, {});
+    t.same(optionsImmutable, {});
     const tmpCreate = filePath => `.${filePath}.custom`;
-    const tmpCreated = filePath => t.is ( filePath, '.good.custom' );
+    const tmpCreated = filePath => t.equal(filePath, '.good.custom' );
     noexception(t, 'custom temp creator', () => {
       writeFileAtomicSync('good', 'test', {tmpCreate, tmpCreated})
     })
     const path0 = path.join(os.tmpdir(),'atomically-test-0');
     const tmpPath0 = path0 + '.temp';
     noexception(t, 'temp files are purged on success', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs });
+      const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs });
       writeFileAtomicSync(path0, 'test', {tmpCreate: () => tmpPath0})
     })
-    t.is(true,fs.existsSync(path0));
-    t.is(false,fs.existsSync(tmpPath0));
+    t.equal(true,fs.existsSync(path0));
+    t.equal(false,fs.existsSync(tmpPath0));
     const path1 = path.join(os.tmpdir(),'atomically-test-norename-1');
     const tmpPath1 = path1 + '.temp';
     throws(t, 'ENORENAME', 'temp files are purged on error', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
+      const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
       writeFileAtomicSync(path1, 'test', {tmpCreate: () => tmpPath1})
     })
-    t.is(false,fs.existsSync(path1));
-    t.is(false,fs.existsSync(tmpPath1));
+    t.equal(false,fs.existsSync(path1));
+    t.equal(false,fs.existsSync(tmpPath1));
     const path2 = path.join(os.tmpdir(),'atomically-test-norename-2');
     const tmpPath2 = path2 + '.temp';
     throws(t, 'ENORENAME', 'temp files can also not be purged on error', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
+      const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs: Object.assign ( {}, fs, { renameSync: fsMock.renameSync })});
       writeFileAtomicSync(path2, 'test', {tmpCreate: () => tmpPath2,tmpPurge: false})
     })
-    t.is(false,fs.existsSync(path2));
-    t.is(true,fs.existsSync(tmpPath2));
+    t.equal(false,fs.existsSync(path2));
+    t.equal(true,fs.existsSync(tmpPath2));
     const longPath = path.join(os.tmpdir(),'.012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789.txt');
     noexception(t, 'temp files are truncated', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs });
+      const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs });
       writeFileAtomicSync(longPath, 'test')
     })
     const pathMissingFolders = path.join(os.tmpdir(),String(Math.random()),String(Math.random()),String(Math.random()),'foo.txt');
     noexception(t, 'parent folders are created', () => {
-      const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs });
+      const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs });
       writeFileAtomicSync(pathMissingFolders, 'test')
     })
   })
@@ -432,7 +431,7 @@ test('sync tests', t => {
     t.teardown(() => {
       process.getuid = getuid
     })
-    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMock });
+    const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs: fsMock });
     t.plan(2)
     throws(t, 'EINVAL', 'Chown error as root user', () => {
       writeFileAtomicSync('einval', 'test', { chown: { uid: 100, gid: 100 } })
@@ -449,21 +448,22 @@ test('unstable sync tests', t => {
   const throws = function (t, msg, todo) {
     let err
     try { todo() } catch (e) { err = e }
-    t.is(!!err.code, true, msg)
+    t.equal(!!err.code, true, msg)
   }
+
   const noexception = function (t, msg, todo) {
     let err
     try { todo() } catch (e) { err = e }
-    t.ifError(err, msg)
+    t.error(err, msg)
   }
 
   noexception(t, 'No errors occur when retryable errors are thrown', () => {
-    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMockUnstable });
+    const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs: fsMockUnstable });
     writeFileAtomicSync('good', 'test')
   })
 
   throws(t, 'retrying can be disabled', () => {
-    const {writeFileSync: writeFileAtomicSync} = requireInject('../dist/index.js', { fs: fsMockUnstable });
+    const {writeFileSync: writeFileAtomicSync} = requireInject('./atomically.cjs', { fs: fsMockUnstable });
     writeFileAtomicSync('good', 'test', { timeout: 0 })
   })
 });
@@ -497,7 +497,7 @@ test('promises', async t => {
       tmpfile = gottmpfile
     }
   }))
-  t.is(tmpfile, undefined, 'tmpCreated is not called on open failure')
+  t.equal(tmpfile, undefined, 'tmpCreated is not called on open failure')
 
   await t.rejects(writeFileAtomic('nowrite', 'test', {
     tmpCreated (gottmpfile) {

@@ -82,7 +82,7 @@ const fsMock = Object.assign ( {}, fs, {
   }
 })
 
-const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
+const {writeFile: writeFileAtomic} = requireInject('./atomically.cjs', { fs: fsMock });
 
 // preserve original functions
 const oldRealPath = fsMock.realpath
@@ -93,16 +93,16 @@ test('ensure writes to the same file are serial', t => {
   const ops = 5 // count for how many concurrent write ops to request
   t.plan(ops * 3 + 3)
   fsMock.realpath = (...args) => {
-    t.false(fileInUse, 'file not in use')
+    t.notOk(fileInUse, 'file not in use')
     fileInUse = true
     oldRealPath(...args)
   }
   fsMock.rename = (...args) => {
-    t.true(fileInUse, 'file in use')
+    t.ok(fileInUse, 'file in use')
     fileInUse = false
     oldRename(...args)
   }
-  const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
+  const {writeFile: writeFileAtomic} = requireInject('./atomically.cjs', { fs: fsMock });
   for (let i = 0; i < ops; i++) {
     writeFileAtomic('test', 'test', err => {
       if (err) t.fail(err)
@@ -132,7 +132,7 @@ test('allow write to multiple files in parallel, but same file writes are serial
     filesInUse.splice(filesInUse.indexOf(filename), 1)
     oldRename(filename, ...args)
   }
-  const {writeFile: writeFileAtomic} = requireInject('../dist/index.js', { fs: fsMock });
+  const {writeFile: writeFileAtomic} = requireInject('./atomically.cjs', { fs: fsMock });
   t.plan(ops * 2 * 2 + 1)
   let opCount = 0
   for (let i = 0; i < ops; i++) {
@@ -142,7 +142,7 @@ test('allow write to multiple files in parallel, but same file writes are serial
     })
     writeFileAtomic('test2', 'test', err => {
       opCount++
-      if (opCount === ops) t.true(wasParallel, 'parallel writes')
+      if (opCount === ops) t.ok(wasParallel, 'parallel writes')
 
       if (err) t.fail(err, 'wrote without error')
       else t.pass('wrote without error')
