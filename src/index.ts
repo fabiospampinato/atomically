@@ -17,7 +17,7 @@ function readFile ( filePath: Path, options: Encoding | ReadOptions = DEFAULT_RE
 
   if ( isString ( options ) ) return readFile ( filePath, { encoding: options } );
 
-  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC );
+  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC ) || -1 );
 
   return fs.retry.readFile ( timeout )( filePath, options );
 
@@ -29,7 +29,7 @@ function readFileSync ( filePath: Path, options: Encoding | ReadOptions = DEFAUL
 
   if ( isString ( options ) ) return readFileSync ( filePath, { encoding: options } );
 
-  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_SYNC );
+  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_SYNC ) || -1 );
 
   return fs.retry.readFileSync ( timeout )( filePath, options );
 
@@ -53,7 +53,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
   if ( isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
-  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC );
+  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC ) || -1 );
 
   let schedulerCustomDisposer: Disposer | null = null;
   let schedulerDisposer: Disposer | null = null;
@@ -169,7 +169,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
   if ( isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
 
-  const timeout = Date.now () + ( options.timeout ?? DEFAULT_TIMEOUT_SYNC );
+  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_SYNC ) || -1 );
 
   let tempDisposer: Disposer | null = null;
   let tempPath: string | null = null;
