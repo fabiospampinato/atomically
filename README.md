@@ -49,8 +49,8 @@ Read and write files atomically and reliably.
   - `schedule`: it's a function that returns a promise that resolves to a disposer function, basically it allows you to provide some custom queueing logic for the writing operation, allowing you to perhaps wire `atomically` with your app's main filesystem job scheduler:
     - even when a custom `schedule` function is provided write operations will still be queued internally by the library too.
   - `timeout`: it allows you to specify the amount of maximum milliseconds within which the library will retry some failed operations:
-    - when writing asynchronously by default it will keep retrying for 5000 milliseconds.
-    - when writing synchronously by default it will keep retrying for 100 milliseconds.
+    - when writing asynchronously by default it will keep retrying for 7500 milliseconds.
+    - when writing synchronously by default it will keep retrying for 1000 milliseconds.
     - if `0` or `-1` no failed operations will be retried.
     - if another number is provided that will be the timeout interval.
   - `tmpCreate`: it's a function that will be used to create the custom temporary file path in place of the default one:
