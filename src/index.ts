@@ -85,15 +85,23 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
         options = { ...options };
 
-        if ( useStatChown ) options.chown = { uid: stats.uid, gid: stats.gid };
+        if ( useStatChown ) {
 
-        if ( useStatMode ) options.mode = stats.mode;
+          options.chown = { uid: stats.uid, gid: stats.gid };
+
+        }
+
+        if ( useStatMode ) {
+
+          options.mode = stats.mode;
+
+        }
 
       }
 
     }
 
-    if ( !filePathExists )  {
+    if ( !filePathExists ) {
 
       const parentPath = path.dirname ( filePath );
 
@@ -106,7 +114,11 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     fd = await fs.retry.open ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
-    if ( options.tmpCreated ) options.tmpCreated ( tempPath );
+    if ( options.tmpCreated ) {
+
+      options.tmpCreated ( tempPath );
+
+    }
 
     if ( isString ( data ) ) {
 
@@ -210,9 +222,17 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
         options = { ...options };
 
-        if ( useStatChown ) options.chown = { uid: stats.uid, gid: stats.gid };
+        if ( useStatChown ) {
 
-        if ( useStatMode ) options.mode = stats.mode;
+          options.chown = { uid: stats.uid, gid: stats.gid };
+
+        }
+
+        if ( useStatMode ) {
+
+          options.mode = stats.mode;
+
+        }
 
       }
 
@@ -231,7 +251,11 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
     fd = fs.retry.openSync ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
-    if ( options.tmpCreated ) options.tmpCreated ( tempPath );
+    if ( options.tmpCreated ) {
+
+      options.tmpCreated ( tempPath );
+
+    }
 
     if ( isString ( data ) ) {
 
