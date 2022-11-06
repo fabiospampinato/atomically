@@ -39,7 +39,8 @@ const runAllDummy = () => { // Preparation run
 };
 
 const runAllAsync = async ( name, buffer ) => {
-  await runSingleAsync ( `${name} -> async -> write-file-atomic`, writeFileAtomic, buffer );
+  await runSingleAsync ( `${name} -> async -> write-file-atomic`, writeFileAtomic, buffer, { mode: 0o666 } );
+  await runSingleAsync ( `${name} -> async -> write-file-atomic (faster)`, writeFileAtomic, buffer );
   await runSingleAsync ( `${name} -> async -> write-file-atomic (fastest)`, writeFileAtomic, buffer, { fsync: false } );
   await runSingleAsync ( `${name} -> async -> atomically`, writeFile, buffer );
   await runSingleAsync ( `${name} -> async -> atomically (faster)`, writeFile, buffer, { mode: false, chown: false, fsyncWait: false } );
@@ -47,7 +48,8 @@ const runAllAsync = async ( name, buffer ) => {
 };
 
 const runAllSync = ( name, buffer ) => {
-  runSingleSync ( `${name} -> sync -> write-file-atomic`, writeFileAtomic.sync, buffer );
+  runSingleSync ( `${name} -> sync -> write-file-atomic`, writeFileAtomic.sync, buffer, { mode: 0o666 } );
+  runSingleSync ( `${name} -> sync -> write-file-atomic (faster)`, writeFileAtomic.sync, buffer );
   runSingleSync ( `${name} -> sync -> write-file-atomic (fastest)`, writeFileAtomic.sync, buffer, { fsync: false } );
   runSingleSync ( `${name} -> sync -> atomically`, writeFileSync, buffer );
   runSingleSync ( `${name} -> sync -> atomically (faster)`, writeFileSync, buffer, { mode: false, chown: false, fsyncWait: false } );
