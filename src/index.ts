@@ -58,6 +58,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
   let schedulerCustomDisposer: Disposer | null = null;
   let schedulerDisposer: Disposer | null = null;
   let tempDisposer: Disposer | null = null;
+  let existentPath: boolean = false;
   let tempPath: string | null = null;
   let fd: number | null = null;
 
@@ -67,7 +68,11 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     schedulerDisposer = await Scheduler.schedule ( filePath );
 
-    filePath = await fs.attempt.realpath ( filePath ) || filePath;
+    const filePathReal = await fs.attempt.realpath ( filePath );
+
+    existentPath ||= !!filePathReal;
+
+    filePath = filePathReal || filePath;
 
     [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create, !( options.tmpPurge === false ) );
 
@@ -76,26 +81,32 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     if ( useStatChown || useStatMode ) {
 
-      const stat = await fs.attempt.stat ( filePath );
+      const stats = await fs.attempt.stat ( filePath );
 
-      if ( stat ) {
+      existentPath ||= !!stats;
+
+      if ( stats ) {
 
         options = { ...options };
 
-        if ( useStatChown ) options.chown = { uid: stat.uid, gid: stat.gid };
+        if ( useStatChown ) options.chown = { uid: stats.uid, gid: stats.gid };
 
-        if ( useStatMode ) options.mode = stat.mode;
+        if ( useStatMode ) options.mode = stats.mode;
 
       }
 
     }
 
-    const parentPath = path.dirname ( filePath );
+    if ( !existentPath )  {
 
-    await fs.attempt.mkdir ( parentPath, {
-      mode: DEFAULT_FOLDER_MODE,
-      recursive: true
-    });
+      const parentPath = path.dirname ( filePath );
+
+      await fs.attempt.mkdir ( parentPath, {
+        mode: DEFAULT_FOLDER_MODE,
+        recursive: true
+      });
+
+    }
 
     fd = await fs.retry.open ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
@@ -172,12 +183,17 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
   const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_SYNC ) || -1 );
 
   let tempDisposer: Disposer | null = null;
+  let existentPath: boolean = false;
   let tempPath: string | null = null;
   let fd: number | null = null;
 
   try {
 
-    filePath = fs.attempt.realpathSync ( filePath ) || filePath;
+    const filePathReal = fs.attempt.realpathSync ( filePath );
+
+    existentPath ||= !!filePathReal;
+
+    filePath = filePathReal || filePath;
 
     [tempPath, tempDisposer] = Temp.get ( filePath, options.tmpCreate || Temp.create, !( options.tmpPurge === false ) );
 
@@ -186,26 +202,32 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
     if ( useStatChown || useStatMode ) {
 
-      const stat = fs.attempt.statSync ( filePath );
+      const stats = fs.attempt.statSync ( filePath );
 
-      if ( stat ) {
+      existentPath ||= !!stats;
+
+      if ( stats ) {
 
         options = { ...options };
 
-        if ( useStatChown ) options.chown = { uid: stat.uid, gid: stat.gid };
+        if ( useStatChown ) options.chown = { uid: stats.uid, gid: stats.gid };
 
-        if ( useStatMode ) options.mode = stat.mode;
+        if ( useStatMode ) options.mode = stats.mode;
 
       }
 
     }
 
-    const parentPath = path.dirname ( filePath );
+    if ( !existentPath ) {
 
-    fs.attempt.mkdirSync ( parentPath, {
-      mode: DEFAULT_FOLDER_MODE,
-      recursive: true
-    });
+      const parentPath = path.dirname ( filePath );
+
+      fs.attempt.mkdirSync ( parentPath, {
+        mode: DEFAULT_FOLDER_MODE,
+        recursive: true
+      });
+
+    }
 
     fd = fs.retry.openSync ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 

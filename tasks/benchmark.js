@@ -1,6 +1,7 @@
 
 /* IMPORT */
 
+import {randomUUID} from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -11,7 +12,8 @@ import {writeFile, writeFileSync} from '../dist/index.js';
 /* MAIN */
 
 const TEMP = os.tmpdir ();
-const DST = i => path.join ( TEMP, `atomically-temp-${i}.txt` );
+const UUID = randomUUID ();
+const DST = i => path.join ( TEMP, `atomically-${UUID}-temp-${i}.txt` );
 const ITERATIONS = 250;
 
 const runSingleAsync = async ( name, fn, buffer, options ) => {
