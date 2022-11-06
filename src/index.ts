@@ -136,9 +136,17 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     fd = null;
 
-    if ( options.chown ) await fs.attempt.chown ( tempPath, options.chown.uid, options.chown.gid );
+    if ( options.chown ) {
 
-    if ( options.mode ) await fs.attempt.chmod ( tempPath, options.mode );
+      await fs.attempt.chown ( tempPath, options.chown.uid, options.chown.gid );
+
+    }
+
+    if ( options.mode && options.mode !== DEFAULT_FILE_MODE ) {
+
+      await fs.attempt.chmod ( tempPath, options.mode );
+
+    }
 
     try {
 
@@ -253,9 +261,17 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
     fd = null;
 
-    if ( options.chown ) fs.attempt.chownSync ( tempPath, options.chown.uid, options.chown.gid );
+    if ( options.chown ) {
 
-    if ( options.mode ) fs.attempt.chmodSync ( tempPath, options.mode );
+      fs.attempt.chownSync ( tempPath, options.chown.uid, options.chown.gid );
+
+    }
+
+    if ( options.mode && options.mode !== DEFAULT_FILE_MODE ) {
+
+      fs.attempt.chmodSync ( tempPath, options.mode );
+
+    }
 
     try {
 
