@@ -3,7 +3,7 @@
 
 import path from 'node:path';
 import fs from 'stubborn-fs';
-import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './constants';
+import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_USER_UID, DEFAULT_USER_GID, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './constants';
 import {isException, isFunction, isString, isUndefined} from './utils/lang';
 import Scheduler from './utils/scheduler';
 import Temp from './utils/temp';
@@ -136,7 +136,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     fd = null;
 
-    if ( options.chown ) {
+    if ( options.chown && ( options.chown.uid !== DEFAULT_USER_UID || options.chown.gid !== DEFAULT_USER_GID ) ) {
 
       await fs.attempt.chown ( tempPath, options.chown.uid, options.chown.gid );
 
@@ -261,7 +261,7 @@ const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOpt
 
     fd = null;
 
-    if ( options.chown ) {
+    if ( options.chown && ( options.chown.uid !== DEFAULT_USER_UID || options.chown.gid !== DEFAULT_USER_GID ) ) {
 
       fs.attempt.chownSync ( tempPath, options.chown.uid, options.chown.gid );
 
