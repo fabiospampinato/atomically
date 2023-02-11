@@ -192,7 +192,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
 }
 
-const writeFileSync = ( filePath: Path, data: Data, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): void => {
+function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): void {
 
   if ( isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
 
