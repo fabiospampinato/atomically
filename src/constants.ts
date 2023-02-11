@@ -2,6 +2,7 @@
 /* IMPORT */
 
 import os from 'node:os';
+import process from 'node:process';
 
 /* MAIN */
 
