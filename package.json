@@ -27,15 +27,15 @@
   ],
   "dependencies": {
     "stubborn-fs": "^1.2.5",
-    "when-exit": "^2.0.0"
+    "when-exit": "^2.1.1"
   },
   "devDependencies": {
-    "@types/node": "^18.13.0",
-    "esbuild": "^0.17.7",
+    "@types/node": "^20.4.6",
+    "esbuild": "^0.18.17",
     "require-inject": "^1.4.4",
-    "tap": "^16.3.4",
-    "tsex": "^2.1.0",
-    "typescript": "^4.9.5",
-    "write-file-atomic": "^5.0.0"
+    "tap": "^16.3.8",
+    "tsex": "^3.0.0",
+    "typescript": "^5.1.6",
+    "write-file-atomic": "^5.0.1"
   }
 }
