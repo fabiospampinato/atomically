@@ -328,3 +328,4 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 /* EXPORT */
 
 export {readFile, readFileSync, writeFile, writeFileSync};
+export type {Encoding, ReadOptions, WriteOptions};
