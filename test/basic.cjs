@@ -1,10 +1,12 @@
 process.setMaxListeners(1000000);
 
-const fs = require('fs')
-const os = require('os')
-const path = require('path')
-const {test} = require('tap')
+const fs = require('node:fs')
+const os = require('node:os')
+const path = require('node:path')
+const {Readable} = require('node:stream')
+
 const requireInject = require('require-inject')
+const {test} = require('tap')
 
 let expectClose = 0
 let closeCalled = 0
@@ -158,7 +160,7 @@ test('async tests', t => {
   })
 
   t.test('non-root tests', t => {
-    t.plan(28)
+    t.plan(29)
 
     writeFileAtomic('good', 'test', { mode: '0777' }, err => {
       t.notOk(err, 'No errors occur when passing in options')
@@ -170,6 +172,13 @@ test('async tests', t => {
       t.notOk(err, 'No errors occur when NOT passing in options')
     })
     writeFileAtomic('good', 'test', err => {
+      t.notOk(err)
+    })
+    writeFileAtomic('good', (() => {
+      const stream = new Readable()
+      stream.push('test')
+      stream.push(null)
+    })(), err => {
       t.notOk(err)
     })
     writeFileAtomic('noopen', 'test', err => {
