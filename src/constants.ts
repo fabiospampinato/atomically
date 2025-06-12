@@ -16,9 +16,9 @@ const DEFAULT_READ_OPTIONS = {};
 
 const DEFAULT_WRITE_OPTIONS = {};
 
-const DEFAULT_USER_UID = os.userInfo ().uid;
+const DEFAULT_USER_UID = process.geteuid ? process.geteuid() : -1;
 
-const DEFAULT_USER_GID = os.userInfo ().gid;
+const DEFAULT_USER_GID = process.getegid ? process.getegid() : -1;
 
 const DEFAULT_TIMEOUT_ASYNC = 7500;
 
