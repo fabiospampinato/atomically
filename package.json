@@ -14,7 +14,7 @@
     "clean": "tsex clean",
     "compile": "tsex compile",
     "compile:watch": "tsex compile --watch",
-    "test:init": "esbuild --bundle --target=es2020 --platform=node --format=cjs src/index.ts > test/atomically.cjs",
+    "test:init": "esbuild --bundle --log-level=error --target=es2020 --platform=node --format=cjs src/index.ts > test/atomically.cjs",
     "test": "npm run test:init && tap --disable-coverage",
     "test:watch": "npm run test:init && tap --disable-coverage --watch",
     "prepublishOnly": "npm run clean && npm run compile && npm run test"
