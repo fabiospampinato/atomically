@@ -1,7 +1,10 @@
 
 /* IMPORT */
 
+import {once} from 'node:events';
+import {createWriteStream} from 'node:fs';
 import path from 'node:path';
+import {Readable} from 'node:stream';
 import fs from 'stubborn-fs';
 import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_USER_UID, DEFAULT_USER_GID, DEFAULT_INTERVAL_ASYNC, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './constants';
 import {isException, isFunction, isString, isUndefined} from './utils/lang';
@@ -38,9 +41,9 @@ function readFileSync ( filePath: Path, options: Encoding | ReadOptions = DEFAUL
 
 }
 
-function writeFile ( filePath: Path, data: Data, callback?: Callback ): Promise<void>;
-function writeFile ( filePath: Path, data: Data, options?: Encoding | WriteOptions, callback?: Callback ): Promise<void>;
-function writeFile ( filePath: Path, data: Data, options?: Encoding | WriteOptions | Callback, callback?: Callback ): Promise<void> {
+function writeFile ( filePath: Path, data: Data | Readable, callback?: Callback ): Promise<void>;
+function writeFile ( filePath: Path, data: Data | Readable, options?: Encoding | WriteOptions, callback?: Callback ): Promise<void>;
+function writeFile ( filePath: Path, data: Data | Readable, options?: Encoding | WriteOptions | Callback, callback?: Callback ): Promise<void> {
 
   if ( isFunction ( options ) ) return writeFile ( filePath, data, DEFAULT_WRITE_OPTIONS, options );
 
@@ -52,7 +55,7 @@ function writeFile ( filePath: Path, data: Data, options?: Encoding | WriteOptio
 
 }
 
-async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): Promise<void> {
+async function writeFileAsync ( filePath: Path, data: Data | Readable, options: Encoding | WriteOptions = DEFAULT_WRITE_OPTIONS ): Promise<void> {
 
   if ( isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
@@ -127,6 +130,15 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
     if ( isString ( data ) ) {
 
       await fs.retry.write ( retryOptions )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+
+    } else if ( data instanceof Readable ) {
+
+      const writeStream = createWriteStream ( tempPath, { fd, autoClose: false } );
+      const finishPromise = once ( writeStream, 'finish' );
+
+      data.pipe ( writeStream );
+
+      await finishPromise;
 
     } else if ( !isUndefined ( data ) ) {
 
