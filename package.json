@@ -26,8 +26,8 @@
     "reliable"
   ],
   "dependencies": {
-    "stubborn-fs": "^1.2.5",
     "when-exit": "^2.1.1"
+    "stubborn-fs": "^2.0.0",
   },
   "devDependencies": {
     "@types/node": "^20.4.6",

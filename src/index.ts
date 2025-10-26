@@ -3,11 +3,12 @@
 
 import path from 'node:path';
 import fs from 'stubborn-fs';
-import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_USER_UID, DEFAULT_USER_GID, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './constants';
+import {DEFAULT_ENCODING, DEFAULT_FILE_MODE, DEFAULT_FOLDER_MODE, DEFAULT_READ_OPTIONS, DEFAULT_WRITE_OPTIONS, DEFAULT_USER_UID, DEFAULT_USER_GID, DEFAULT_INTERVAL_ASYNC, DEFAULT_TIMEOUT_ASYNC, DEFAULT_TIMEOUT_SYNC, IS_POSIX} from './constants';
 import {isException, isFunction, isString, isUndefined} from './utils/lang';
 import Scheduler from './utils/scheduler';
 import Temp from './utils/temp';
 import type {Callback, Data, Disposer, Encoding, Path, ReadOptions, WriteOptions} from './types';
+import type {RetryifyAsyncCallOptions, RetryifySyncCallOptions} from 'stubborn-fs';
 
 /* MAIN */
 
@@ -17,9 +18,10 @@ function readFile ( filePath: Path, options: Encoding | ReadOptions = DEFAULT_RE
 
   if ( isString ( options ) ) return readFile ( filePath, { encoding: options } );
 
-  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC ) || -1 );
+  const timeout = options.timeout ?? DEFAULT_TIMEOUT_ASYNC;
+  const retryOptions: RetryifyAsyncCallOptions = { timeout, interval: DEFAULT_INTERVAL_ASYNC };
 
-  return fs.retry.readFile ( timeout )( filePath, options );
+  return fs.retry.readFile ( retryOptions )( filePath, options );
 
 }
 
@@ -29,9 +31,10 @@ function readFileSync ( filePath: Path, options: Encoding | ReadOptions = DEFAUL
 
   if ( isString ( options ) ) return readFileSync ( filePath, { encoding: options } );
 
-  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_SYNC ) || -1 );
+  const timeout = options.timeout ?? DEFAULT_TIMEOUT_SYNC;
+  const retryOptions: RetryifySyncCallOptions = { timeout };
 
-  return fs.retry.readFileSync ( timeout )( filePath, options );
+  return fs.retry.readFileSync ( retryOptions )( filePath, options );
 
 }
 
@@ -53,7 +56,8 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
   if ( isString ( options ) ) return writeFileAsync ( filePath, data, { encoding: options } );
 
-  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_ASYNC ) || -1 );
+  const timeout = options.timeout ?? DEFAULT_TIMEOUT_ASYNC;
+  const retryOptions: RetryifyAsyncCallOptions = { timeout, interval: DEFAULT_INTERVAL_ASYNC };
 
   let schedulerCustomDisposer: Disposer | null = null;
   let schedulerDisposer: Disposer | null = null;
@@ -112,7 +116,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     }
 
-    fd = await fs.retry.open ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
+    fd = await fs.retry.open ( retryOptions )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
     if ( options.tmpCreated ) {
 
@@ -122,11 +126,11 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     if ( isString ( data ) ) {
 
-      await fs.retry.write ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      await fs.retry.write ( retryOptions )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
 
     } else if ( !isUndefined ( data ) ) {
 
-      await fs.retry.write ( timeout )( fd, data, 0, data.length, 0 );
+      await fs.retry.write ( retryOptions )( fd, data, 0, data.length, 0 );
 
     }
 
@@ -134,7 +138,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
       if ( options.fsyncWait !== false ) {
 
-        await fs.retry.fsync ( timeout )( fd );
+        await fs.retry.fsync ( retryOptions )( fd );
 
       } else {
 
@@ -144,7 +148,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     }
 
-    await fs.retry.close ( timeout )( fd );
+    await fs.retry.close ( retryOptions )( fd );
 
     fd = null;
 
@@ -162,7 +166,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
     try {
 
-      await fs.retry.rename ( timeout )( tempPath, filePath );
+      await fs.retry.rename ( retryOptions )( tempPath, filePath );
 
     } catch ( error: unknown ) {
 
@@ -170,7 +174,7 @@ async function writeFileAsync ( filePath: Path, data: Data, options: Encoding | 
 
       if ( error.code !== 'ENAMETOOLONG' ) throw error;
 
-      await fs.retry.rename ( timeout )( tempPath, Temp.truncate ( filePath ) );
+      await fs.retry.rename ( retryOptions )( tempPath, Temp.truncate ( filePath ) );
 
     }
 
@@ -196,7 +200,8 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
   if ( isString ( options ) ) return writeFileSync ( filePath, data, { encoding: options } );
 
-  const timeout = Date.now () + ( ( options.timeout ?? DEFAULT_TIMEOUT_SYNC ) || -1 );
+  const timeout = options.timeout ?? DEFAULT_TIMEOUT_SYNC;
+  const retryOptions: RetryifySyncCallOptions = { timeout };
 
   let tempDisposer: Disposer | null = null;
   let tempPath: string | null = null;
@@ -249,7 +254,7 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
     }
 
-    fd = fs.retry.openSync ( timeout )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
+    fd = fs.retry.openSync ( retryOptions )( tempPath, 'w', options.mode || DEFAULT_FILE_MODE );
 
     if ( options.tmpCreated ) {
 
@@ -259,11 +264,11 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
     if ( isString ( data ) ) {
 
-      fs.retry.writeSync ( timeout )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      fs.retry.writeSync ( retryOptions )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
 
     } else if ( !isUndefined ( data ) ) {
 
-      fs.retry.writeSync ( timeout )( fd, data, 0, data.length, 0 );
+      fs.retry.writeSync ( retryOptions )( fd, data, 0, data.length, 0 );
 
     }
 
@@ -271,7 +276,7 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
       if ( options.fsyncWait !== false ) {
 
-        fs.retry.fsyncSync ( timeout )( fd );
+        fs.retry.fsyncSync ( retryOptions )( fd );
 
       } else {
 
@@ -281,7 +286,7 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
     }
 
-    fs.retry.closeSync ( timeout )( fd );
+    fs.retry.closeSync ( retryOptions )( fd );
 
     fd = null;
 
@@ -299,7 +304,7 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
     try {
 
-      fs.retry.renameSync ( timeout )( tempPath, filePath );
+      fs.retry.renameSync ( retryOptions )( tempPath, filePath );
 
     } catch ( error: unknown ) {
 
@@ -307,7 +312,7 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
       if ( error.code !== 'ENAMETOOLONG' ) throw error;
 
-      fs.retry.renameSync ( timeout )( tempPath, Temp.truncate ( filePath ) );
+      fs.retry.renameSync ( retryOptions )( tempPath, Temp.truncate ( filePath ) );
 
     }
 
