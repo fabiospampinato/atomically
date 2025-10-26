@@ -64,7 +64,7 @@ Read and write files atomically and reliably.
 ## Install
 
 ```sh
-npm install --save atomically
+npm install atomically
 ```
 
 ## Usage
