@@ -99,7 +99,7 @@ This is the shape of the provided functions:
 ```ts
 function readFile ( filePath: string, options?: ReadOptions ): Promise<Buffer | string>;
 function readFileSync ( filePath: string, options?: ReadOptions ): Buffer | string;
-function writeFile ( filePath: string, data: Buffer | string | undefined, options?: WriteOptions ): Promise<void>;
+function writeFile ( filePath: string, data: Readable | Buffer | string | undefined, options?: WriteOptions ): Promise<void>;
 function writeFileSync ( filePath: string, data: Buffer | string | undefined, options?: WriteOptions ): void;
 ```
 
