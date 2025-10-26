@@ -15,8 +15,8 @@
     "compile": "tsex compile",
     "compile:watch": "tsex compile --watch",
     "test:init": "esbuild --bundle --target=es2020 --platform=node --format=cjs src/index.ts > test/atomically.cjs",
-    "test": "npm run test:init && tap --no-check-coverage --no-coverage-report",
-    "test:watch": "npm run test:init && tap --no-check-coverage --no-coverage-report --watch",
+    "test": "npm run test:init && tap --disable-coverage",
+    "test:watch": "npm run test:init && tap --disable-coverage --watch",
     "prepublishOnly": "npm run clean && npm run compile && npm run test"
   },
   "keywords": [
@@ -34,7 +34,7 @@
     "@types/node": "^18.19.130",
     "esbuild": "^0.18.20",
     "require-inject": "^1.4.4",
-    "tap": "^16.3.8",
+    "tap": "^21.1.1",
     "tsex": "^4.0.2",
     "typescript": "^5.9.3",
     "write-file-atomic": "^7.0.0"
