@@ -2,6 +2,8 @@ resources
 src
 tasks
 test
+.tap
+.nyc_output
 
 .editorconfig
 tsconfig.json
