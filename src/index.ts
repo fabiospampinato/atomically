@@ -129,7 +129,13 @@ async function writeFileAsync ( filePath: Path, data: Data | Readable, options: 
 
     if ( isString ( data ) ) {
 
-      await fs.retry.write ( retryOptions )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      const buffer = Buffer.from ( data, options.encoding || DEFAULT_ENCODING );
+
+      for ( let offset = 0; offset < buffer.length; ) { // loop to handle short writes
+
+        offset += await fs.retry.write ( retryOptions )( fd, buffer, offset, buffer.length - offset, offset );
+
+      }
 
     } else if ( data instanceof Readable ) {
 
@@ -142,7 +148,11 @@ async function writeFileAsync ( filePath: Path, data: Data | Readable, options: 
 
     } else if ( !isUndefined ( data ) ) {
 
-      await fs.retry.write ( retryOptions )( fd, data, 0, data.length, 0 );
+      for ( let offset = 0; offset < data.length; ) { // loop to handle short writes
+
+        offset += await fs.retry.write ( retryOptions )( fd, data, offset, data.length - offset, offset );
+
+      }
 
     }
 
@@ -276,11 +286,21 @@ function writeFileSync ( filePath: Path, data: Data, options: Encoding | WriteOp
 
     if ( isString ( data ) ) {
 
-      fs.retry.writeSync ( retryOptions )( fd, data, 0, options.encoding || DEFAULT_ENCODING );
+      const buffer = Buffer.from ( data, options.encoding || DEFAULT_ENCODING );
+
+      for ( let offset = 0; offset < buffer.length; ) { // loop to handle short writes
+
+        offset += fs.retry.writeSync ( retryOptions )( fd, buffer, offset, buffer.length - offset, offset );
+
+      }
 
     } else if ( !isUndefined ( data ) ) {
 
-      fs.retry.writeSync ( retryOptions )( fd, data, 0, data.length, 0 );
+      for ( let offset = 0; offset < data.length; ) { // loop to handle short writes
+
+        offset += fs.retry.writeSync ( retryOptions )( fd, data, offset, data.length - offset, offset );
+
+      }
 
     }
 
