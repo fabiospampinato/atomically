@@ -20,7 +20,7 @@ Read and write files atomically and reliably.
   - `ENOSYS` errors on `chmod`/`chown` operations are ignored.
   - `EINVAL`/`EPERM` errors on `chmod`/`chown` operations, in POSIX systems where the user is not root, are ignored.
   - `EMFILE`/`ENFILE`/`EAGAIN`/`EBUSY`/`EACCESS`/`EACCES`/`EACCS`/`EPERM` errors happening during necessary operations are caught and the operations are retried until they succeed or the timeout is reached.
-  - `ENAMETOOLONG` errors, both appening because of the final path or the temporary path, are attempted to be worked around by smartly truncating paths.
+  - `ENAMETOOLONG` errors, both happening because of the final path or the temporary path, are attempted to be worked around by smartly truncating paths.
 - Temporary files:
   - By default they are purged automatically once the write operation is completed or if the process exits (cleanly or not).
   - By default they are created by appending a `.tmp-[timestamp][randomness]` suffix to destination paths:
@@ -120,10 +120,10 @@ await writeFile ( '/foo.txt', 'my_data' );
 // Asynchronous write that doesn't prod the old file for a stat object at all
 await writeFile ( '/foo.txt', 'my_data', { chown: false, mode: false } );
 
-// 10x faster asynchronous write that's less resilient against imminent catastrophies
+// 10x faster asynchronous write that's less resilient against imminent catastrophes
 await writeFile ( '/foo.txt', 'my_data', { fsync: false } );
 
-// 10x faster asynchronous write that's essentially still as resilient against imminent catastrophies
+// 10x faster asynchronous write that's essentially still as resilient against imminent catastrophes
 await writeFile ( '/foo.txt', 'my_data', { fsyncWait: false } );
 
 // Asynchronous write with a custom schedule function
