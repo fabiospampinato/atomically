@@ -357,7 +357,7 @@ test('sync tests', t => {
     noexception(t, 'No attempt to chown when false passed in', () => {
       writeFileAtomicSync('nochown', 'test', { chown: false })
     })
-    noexception(t, 'No errors occured when chown is undefined and original file owner used', () => {
+    noexception(t, 'No errors occurred when chown is undefined and original file owner used', () => {
       writeFileAtomicSync('chowncopy', 'test', { chown: undefined })
     })
     throws(t, 'ENORENAME', 'Rename errors propagate', () => {
