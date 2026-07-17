@@ -1,9 +1,9 @@
 process.setMaxListeners(1000000);
 
-const fs = require('fs')
-const os = require('os')
-const path = require('path')
-const {Readable} = require('stream')
+const fs = require('node:fs')
+const os = require('node:os')
+const path = require('node:path')
+const {Readable} = require('node:stream')
 
 const requireInject = require('require-inject')
 const {test} = require('tap')
