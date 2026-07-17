@@ -123,8 +123,8 @@ test('allow write to multiple files in parallel, but same file writes are serial
   let wasParallel = false
   fsMock.realpath = (filename, ...args) => {
     filesInUse.push(filename)
-    const firstOccurence = filesInUse.indexOf(filename)
-    t.equal(filesInUse.indexOf(filename, firstOccurence + 1), -1, 'serial writes') // check for another occurence after the first
+    const firstOccurrence = filesInUse.indexOf(filename)
+    t.equal(filesInUse.indexOf(filename, firstOccurrence + 1), -1, 'serial writes') // check for another occurrence after the first
     if (filesInUse.length > 1) wasParallel = true // remember that a parallel operation took place
     oldRealPath(filename, ...args)
   }
